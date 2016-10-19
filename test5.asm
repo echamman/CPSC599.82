@@ -24,7 +24,7 @@ code	LDA #$00	;zero volume value
 	LDA #$00		;port input mask
 	STA $9113		;store to VIA#1 DDR
 	LDA $9111		;load joystick input
-	EOR #$DF		;XOR against bitmask
+	EOR #$DF		;XOR against fire button bitmask
 	BNE code		;branch up on no input	
 	LDA #$0F		;load volume 15
 	STA $900E		;store volume
