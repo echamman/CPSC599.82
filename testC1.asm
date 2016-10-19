@@ -19,17 +19,10 @@ stub	.BYTE #$0	;Link stuff
 
 	seg code
 	org $1130
-code	LDA #$00	;zero volume value
-	STA $900E		;store volume
+code
 	LDA #$00		;port input mask
 	STA $9113		;store to VIA#1 DDR
 	LDA $9111		;load joystick input
-	EOR #$DF		;XOR against bitmask
-	BNE code		;branch up on no input	
-	LDA #$0F		;load volume 15
-	STA $900E		;store volume
-	LDA #$87		;load tone value
-	STA $900A		;store to speaker 1
-	LDA #$8F		;load tone value
-	STA $900B		;store to speaker 2
+	EOR #$01		;XOR against bitmask
+	BEQ code		;branch up on no input
 	BNE code	;main loop
