@@ -5,37 +5,38 @@
 	seg
 	org $1001
 
-stub	.BYTE #$0	;Link stuff
-	.BYTE #$0C
+;This is the stub, it calls SYS 4400, 4400 being the arbitrary address we are writing our machine code at
+stub	.BYTE #$0	;New line
+	.BYTE #$0C	;arbitary link values (Non-zero)
 	.BYTE #$0A
-	.BYTE #$0
-	.BYTE #$9E	;SYS 4400
-	.BYTE #$20
-	.BYTE #$34
-	.BYTE #$34
-	.BYTE #$30
-	.BYTE #$30
-	.BYTE #$0
+	.BYTE #$0	;new line
+	.BYTE #$9E	;SYS
+	.BYTE #$20	;space
+	.BYTE #$34	;4
+	.BYTE #$34	;4
+	.BYTE #$30	;0
+	.BYTE #$30	;0
+	.BYTE #$0	;END CODE
 	.BYTE #$0
 	.BYTE #$0
 
 	seg code
-	org $1130
-code	
+	org $1130	;Address 4400
+code
         LDX #$00
 RD      JSR $FFCF ;get input
         ;LDX #$00
         ;can only do one char until we learn how to store memory
- 
+
         STA data1,X
         INX
         CMP #$0D
         BNE RD
         CPX #$FF
         BEQ print
-        
+
         LDX #$00
-print   
+print
         LDA data1,X
         JSR $FFD2
         INX
@@ -43,31 +44,29 @@ print
         BNE print
         CPX #$FF
         BEQ finish
- 
+
 finish
 	BNE finish	;loop so it doesn't go back into main BASIC program
- 
-data1    
-    .byte   #$00
-    .byte   #$00
-    .byte   #$00
-    .byte   #$00
-    .byte   #$00
-    .byte   #$00
-    .byte   #$00
-    .byte   #$00
-    .byte   #$00
-    .byte   #$00
-    .byte   #$00
-    .byte   #$00
-    .byte   #$00
-    .byte   #$00
-    .byte   #$00
-    .byte   #$00
-    .byte   #$00
-    .byte   #$00
-    .byte   #$00
-    .byte   #$00
-    .byte   #$00
 
-    
+data1
+    .byte   #$00
+    .byte   #$00
+    .byte   #$00
+    .byte   #$00
+    .byte   #$00
+    .byte   #$00
+    .byte   #$00
+    .byte   #$00
+    .byte   #$00
+    .byte   #$00
+    .byte   #$00
+    .byte   #$00
+    .byte   #$00
+    .byte   #$00
+    .byte   #$00
+    .byte   #$00
+    .byte   #$00
+    .byte   #$00
+    .byte   #$00
+    .byte   #$00
+    .byte   #$00

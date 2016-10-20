@@ -1,24 +1,26 @@
+;Writes the direction that the joystick is moving, or if fire is held down
 	processor 6502
 
 	seg
 	org $1001
 
-stub	.BYTE #$0	;Link stuff
-	.BYTE #$0C
+;This is the stub, it calls SYS 4400, 4400 being the arbitrary address we are writing our machine code at
+stub	.BYTE #$0	;New line
+	.BYTE #$0C	;arbitary link values (Non-zero)
 	.BYTE #$0A
-	.BYTE #$0
-	.BYTE #$9E	;SYS 4400
-	.BYTE #$20
-	.BYTE #$34
-	.BYTE #$34
-	.BYTE #$30
-	.BYTE #$30
-	.BYTE #$0
+	.BYTE #$0	;new line
+	.BYTE #$9E	;SYS
+	.BYTE #$20	;space
+	.BYTE #$34	;4
+	.BYTE #$34	;4
+	.BYTE #$30	;0
+	.BYTE #$30	;0
+	.BYTE #$0	;END CODE
 	.BYTE #$0
 	.BYTE #$0
 
 	seg code
-	org $1130
+	org $1130	;Address 4400
 code
 	LDA #$00		;port input mask
 	STA $9113		;store to VIA#1 DDR
@@ -32,15 +34,15 @@ psf
 	LDA $9111		;load joystick input
 	EOR #$FB		;XOR against bitmask
 	BEQ up			;branch to up
-psu	
+psu
 	LDA $9111		;load joystick input
 	EOR #$F7		;XOR against bitmask
 	BEQ down		;branch to down
-psd	
+psd
 	LDA $9111		;load joystick input
 	EOR #$EF		;XOR against bitmask
 	BEQ left		;branch to left
-psl		
+psl
 	LDA $9120		;load joystick input (VIA2)
 	EOR #$7F		;XOR against bitmask
 	BEQ right		;branch to right on input
@@ -53,7 +55,7 @@ fire
 up
 	LDA #$55		;load U
 	JSR $FFD2		;print
-	BNE psu			;branch post up	
+	BNE psu			;branch post up
 down
 	LDA #$44		;load D
 	JSR $FFD2		;print
