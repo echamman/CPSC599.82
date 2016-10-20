@@ -21,14 +21,26 @@ stub	.BYTE #$0	;Link stuff
 	seg code
 	org $1130
     
-    LDY #$00    ;store y = 0
+    LDY data1   ;store y = 0
 loop1
     LDA #$20	;load 'space' char
-	STA $1E00,y	;store the screen location
+    JSR $FFD2   
     INY         ;inc y
-    CPY #$1FA    ; compare it with dec 23*22
+    CPY #$FD    ; compare it with dec 23*22
     BNE loop1   ; loop until end of row
     
+    LDA data2   ; if data2 is 1 then we done
+    CMP #$01    
+    BEQ print   
+    LDX data2   ; else load data2
+    INX         ; inc data2
+    STX data2   ; store it back
+    BNE loop1   ; finish 2nd half of clear
+    
+    ;first iterate through all channels and open them. ie the character slots
+    
+   
+print   
     LDA #$08    ;H
     STA $1E05   
     LDA #$05    ;E
@@ -54,10 +66,17 @@ loop1
     LDA #$21    ;!
     STA $1E10       
     
+    LDA #$21
+    STA $1FF7
+    
 finish
 	BNE finish	;loop so it doesn't go back into main BASIC program
 
     
     
+data1
+    .BYTE #$00
+data2
+    .BYTE #$00
     
     
