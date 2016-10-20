@@ -21,10 +21,10 @@ stub	.BYTE #$0	;New line
 
 	seg code
 	org $1130	;Address 4400
-	LDA #$0F
-	STA $900E
-	LDA #$87
-	STA $900A
-	LDA #$8F
-	STA $900B
+	LDA #$0F    ;volume 15
+	STA $900E   ;store the volume in volume memory
+	LDA #$87    ;music note C
+	STA $900A   ;store into speaker 1
+	LDA #$8F    ;load music note C#
+	STA $900B   ;store into speaker 2
 	BNE code

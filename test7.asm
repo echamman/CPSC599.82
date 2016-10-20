@@ -28,21 +28,21 @@ RD      JSR $FFCF ;get input
         ;LDX #$00
         ;can only do one char until we learn how to store memory
 
-        STA data1,X
-        INX
-        CMP #$0D
-        BNE RD
-        CPX #$FF
+        STA data1,X ;store character by character into memory
+        INX         
+        CMP #$0D    ;compare with EOL char
+        BNE RD      ;if EOL go to print sequence
+        CPX #$FF    ;quick fix since above doesnt work. length cannot exceed 255
         BEQ print
 
         LDX #$00
 print
-        LDA data1,X
-        JSR $FFD2
+        LDA data1,X ;load from data char by char,
+        JSR $FFD2   ;print the char thats in accumulator
         INX
-        CMP #$0D
-        BNE print
-        CPX #$FF
+        CMP #$0D    ;check if last print is carriage return
+        BNE print   ;else get and print next char
+        CPX #$FF    ;quick fix since above doesnt work. length cannot exceed 255
         BEQ finish
 
 finish

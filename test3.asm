@@ -21,6 +21,8 @@ stub	.BYTE #$0	;New line
 
 	seg code
 	org $1130	;Address 4400
-code	LDA #$2C
-	STA $900F
+    
+code	
+    LDA #$2C    ;red screen / purple border
+	STA $900F   ;store colors into the memory
 	BNE code
