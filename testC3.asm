@@ -1,20 +1,21 @@
-	;program ticks every 4.25 seconds (255*(1/60)s)
+;pauses the ticks on joystick fire button
 	processor 6502
 
 	seg
 	org $1001
 
-stub	.BYTE #$0	;Link stuff
-	.BYTE #$0C
+;This is the stub, it calls SYS 4400, 4400 being the arbitrary address we are writing our machine code at
+stub	.BYTE #$0	;New line
+	.BYTE #$0C	;arbitary link values (Non-zero)
 	.BYTE #$0A
-	.BYTE #$0
-	.BYTE #$9E	;SYS 4400
-	.BYTE #$20
-	.BYTE #$34
-	.BYTE #$34
-	.BYTE #$30
-	.BYTE #$30
-	.BYTE #$0
+	.BYTE #$0	;new line
+	.BYTE #$9E	;SYS
+	.BYTE #$20	;space
+	.BYTE #$34	;4
+	.BYTE #$34	;4
+	.BYTE #$30	;0
+	.BYTE #$30	;0
+	.BYTE #$0	;END CODE
 	.BYTE #$0
 	.BYTE #$0
 
@@ -27,21 +28,21 @@ code
 	EOR #$DF		;XOR against bitmask
 	BEQ ptog		;branch to fire
 pch
-	LDA pausebool
-	CMP #$00
-	BEQ tick
-	BNE code
-ptog
-	LDA pausebool
-	CMP #$00
-	BEQ set1
-	LDA #$00
-	STA pausebool
-	BVC pch
+	LDA pausebool	;load current pause bool
+	CMP #$00		;compare againt not pasued
+	BEQ tick		;if so tick
+	BNE code		;if not loop
+ptog		
+	LDA pausebool	;load current pause values
+	CMP #$00		;is it not paused
+	BEQ set1		;if so set to 1
+	LDA #$00		;if not load 0
+	STA pausebool	;store to pausebool
+	BVC pch			;branch up
 set1
-	LDA #$01
-	STA pausebool
-	BNE pch
+	LDA #$01		;load 1
+	STA pausebool	;set 1
+	BNE pch			;branch up
 tick
 	LDA $00A2		;load least sig byte of system clock
 	EOR #$FF		;check against mask
