@@ -24,20 +24,61 @@ stub	.BYTE #$0	;New line
 	org $100E	;Address 4110, right after stub
 start	;LDA #$FF	;Nuke character map
 	;STA $9005
+
 	LDA #$8		;Storing 8 into 36879, full black screen
 	STA $900F
-	LDX #$FF	;I believe start1 and start2 are clearing the screen somehow
-start1	LDA #$0
+
+ 	LDX #$FF	;color1 and color2 change the character colors to white all across the screen - Appendix E
+color1	LDA #$1
+	STA $95FE,X
+	DEX
+	CPX #$0
+	BNE color1
+
+	LDX #$FF
+color2	LDA #$1
+	STA $9700,X
+	DEX
+	CPX #$0
+	BNE color2
+
+	LDX #$FF	;print1 and print2 are printing ' ' to the screen - Appendix E
+print1	LDA #$20
 	STA $1DFE,X
 	DEX
 	CPX #$0
-	BNE start1
+	BNE print1
+
 	LDX #$FF
-start2	LDA #$0
+print2	LDA #$20
 	STA $1EFD,X
 	DEX
 	CPX #$0
-	BNE start2
+	BNE print2
 
+msg			;Prints 'PRESS START' - Appendix E
+	LDA #$10
+	STA $1EB6
+	LDA #$12
+	STA $1EB7
+	LDA #$5
+	STA $1EB8
+	LDA #$13
+	STA $1EB9
+	LDA #$13
+	STA $1EBA
+	LDA #$20
+	STA $1EBB
+	LDA #$13
+	STA $1EBC
+	LDA #$14
+	STA $1EBD
+	LDA #$1
+	STA $1EBE
+	LDA #$12
+	STA $1EBF
+	LDA #$14
+	STA $1EC0
 
-	BEQ start	;Branch to start screen
+input
+	BNE input	;Branch to start screen
