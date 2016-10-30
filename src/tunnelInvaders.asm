@@ -81,4 +81,6 @@ msg			;Prints 'PRESS START' - Appendix E
 	STA $1EC0
 
 input
-	BNE input	;Branch to start screen
+	LDA $9111		;load joystick input
+	EOR #$DF		;XOR against fire button bitmask
+	BNE input		;branch up on no input
