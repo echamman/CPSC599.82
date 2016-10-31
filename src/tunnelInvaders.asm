@@ -22,9 +22,14 @@ stub	.BYTE #$0	;New line
 
 	seg code
 	org $100E	;Address 4110, right after stub
-start	;LDA #$FF	;Nuke character map
-	;STA $9005
-
+    
+    JSR intro  
+gameloop
+    JSR main 
+    LDA #$01
+    BNE gameloop
+    
+intro	
 	LDA #$8		;Storing 8 into 36879, full black screen
 	STA $900F
 
@@ -42,19 +47,7 @@ color2	LDA #$1
 	CPX #$0
 	BNE color2
 
-	LDX #$FF	;print1 and print2 are printing ' ' to the screen - Appendix E
-print1	LDA #$20
-	STA $1DFE,X
-	DEX
-	CPX #$0
-	BNE print1
-
-	LDX #$FF
-print2	LDA #$20
-	STA $1EFD,X
-	DEX
-	CPX #$0
-	BNE print2
+    JSR clearscreen
 
 msg			;Prints 'PRESS START' - Appendix E
 	LDA #$10
@@ -79,10 +72,35 @@ msg			;Prints 'PRESS START' - Appendix E
 	STA $1EBF
 	LDA #$14
 	STA $1EC0
-iloop
+
 	LDA #$00		;port input mask
 	STA $9113		;store to VIA#1 DDR
 input
 	LDA $9111		;load joystick input
 	EOR #$DF		;XOR against fire button bitmask
-	BNE iloop		;branch up on no input
+	BNE intro		;branch up on no input
+    RTS
+    
+clearscreen
+	LDX #$FF	;print1 and print2 are printing ' ' to the screen - Appendix E
+print1	LDA #$20
+	STA $1DFE,X
+	DEX
+	CPX #$0
+	BNE print1
+
+	LDX #$FF
+print2	LDA #$20
+	STA $1EFD,X
+	DEX
+	CPX #$0
+	BNE print2
+    RTS
+    
+main
+    JSR clearscreen
+    RTS
+    ;memory the spaceship
+    ;print it to screen.
+    
+    
