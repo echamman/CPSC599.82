@@ -22,14 +22,14 @@ stub	.BYTE #$0	;New line
 
 	seg code
 	org $100E	;Address 4110, right after stub
-    
-    JSR intro  
+
+    JSR intro
 gameloop
-    JSR main 
+    JSR main
     LDA #$01
     BNE gameloop
-    
-intro	
+
+intro
 	LDA #$8		;Storing 8 into 36879, full black screen
 	STA $900F
 
@@ -75,12 +75,12 @@ msg			;Prints 'PRESS START' - Appendix E
 
 	LDA #$00		;port input mask
 	STA $9113		;store to VIA#1 DDR
-input
+quitIntro
 	LDA $9111		;load joystick input
 	EOR #$DF		;XOR against fire button bitmask
 	BNE intro		;branch up on no input
     RTS
-    
+
 clearscreen
 	LDX #$FF	;print1 and print2 are printing ' ' to the screen - Appendix E
 print1	LDA #$20
@@ -96,11 +96,51 @@ print2	LDA #$20
 	CPX #$0
 	BNE print2
     RTS
-    
+
+checkInput			;Stores direction/fire value to Y register
+	LDA #$00		;port input mask
+	STA $9113		;store to VIA#1 DDR
+	LDX $9122		;load VIA#2 DDR to X
+	STA $9122		;store to VIA#2 DDR
+psf
+	LDA $9111		;load joystick input
+	EOR #$DF		;XOR against bitmask
+	BNE psu			;branch to next check
+	STY #$01		;1 is stored to Y if fire is held down
+	BEQ endInput
+psu
+	LDA $9111		;load joystick input
+	EOR #$FB		;XOR against bitmask
+	BNE psd			;branch to next check
+	STY #$02		;2 is stored to Y if up is held down
+	BEQ endInput
+psd
+	LDA $9111		;load joystick input
+	EOR #$F7		;XOR against bitmask
+	BNU psl			;branch to next check
+	STY #$03		;3 is stored to Y if down is held down
+	BEQ endInput
+psl
+	LDA $9111		;load joystick input
+	EOR #$EF		;XOR against bitmask
+	BEQ psr			;branch to next check
+	STY #$04		;4 is stored to Y if left is held down
+	BEQ endInput
+psr
+	LDA $9120		;load joystick input (VIA2)
+	EOR #$7F		;XOR against bitmask
+	BEQ noPush		;branch to next check
+	STY #$05		;5 is stored to Y if right is held down
+	BEQ endInput
+noPush
+	STY #$00		;0 is stored to Y if nothing is pushed
+endInput
+	STX $9122		;else restore VIA#2
+	RTS
+
 main
     JSR clearscreen
+    JSR checkInput
     RTS
     ;memory the spaceship
     ;print it to screen.
-    
-    
