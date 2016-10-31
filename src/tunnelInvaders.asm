@@ -79,10 +79,10 @@ msg			;Prints 'PRESS START' - Appendix E
 	STA $1EBF
 	LDA #$14
 	STA $1EC0
-
+iloop
 	LDA #$00		;port input mask
 	STA $9113		;store to VIA#1 DDR
 input
 	LDA $9111		;load joystick input
 	EOR #$DF		;XOR against fire button bitmask
-	BNE start		;branch up on no input
+	BNE iloop		;branch up on no input
