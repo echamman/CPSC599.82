@@ -27,8 +27,11 @@ stub	.BYTE #$0	;New line
     JSR intro
 gameloop            ;check input,update data, draw data to screen
     JSR checkInput  ;returns user input to Reg Y
+	JSR clearscreen
     JSR updatedata  ;based off Reg Y update certain blocks
-    JSR updatescreen        ;draw changes
+    JSR updateship        ;draw changes
+	JSR drawroof
+	JSR drawfloor
     LDA #$01
     BNE gameloop
 
@@ -74,7 +77,7 @@ msg			        ;Prints 'PRESS START' - Appendix E
 	LDA #$12
 	STA $1EBF
 	LDA #$14
-	STA $1EC0   
+	STA $1EC0
 
 	LDA #$00		;port input mask
 	STA $9113		;store to VIA#1 DDR
@@ -87,7 +90,7 @@ quitIntro
 
 clearscreen
 	LDX #$FF	    ;print1 and print2 are printing ' ' to the screen - Appendix E
-print1	
+print1
     LDA #$20        ;#$20 is space
 	STA $1DFE,X
 	DEX
@@ -95,7 +98,7 @@ print1
 	BNE print1
 
 	LDX #$FF
-print2	
+print2
     LDA #$20
 	STA $1EFD,X
 	DEX
@@ -119,24 +122,32 @@ psu
 	EOR #$FB		;XOR against bitmask
 	BNE psd			;branch to next check
 	LDY #$02		;2 is stored to Y if up is held down
+	LDA shipco
+	SBC #$16
+	STA shipco
 	BEQ endInput
 psd
 	LDA $9111		;load joystick input
 	EOR #$F7		;XOR against bitmask
 	BNE psl			;branch to next check
 	LDY #$03		;3 is stored to Y if down is held down
+	LDA shipco
+	ADC #$16
+	STA shipco
 	BEQ endInput
 psl
 	LDA $9111		;load joystick input
 	EOR #$EF		;XOR against bitmask
 	BEQ psr			;branch to next check
 	LDY #$04		;4 is stored to Y if left is held down
+	INC shipco
 	BEQ endInput
 psr
 	LDA $9120		;load joystick input (VIA2)
 	EOR #$7F		;XOR against bitmask
 	BEQ noPush		;branch to next check
 	LDY #$05		;5 is stored to Y if right is held down
+	DEC shipco
 	BEQ endInput
 noPush
 	LDY #$00		;0 is stored to Y if nothing is pushed
@@ -144,15 +155,15 @@ endInput
 	STX $9122		;else restore VIA#2
 	RTS
 
-setchars             ;Store the character set in RAM                            
+setchars             ;Store the character set in RAM
     LDA #$FF        ;Tell vic to read chars from RAM
-    STA $9005       ;poke 36869,255               
+    STA $9005       ;poke 36869,255
     LDA #$1C        ;securing charset location
     STA $0034       ;poke 52,28
     LDA #$1C        ;securing charset location
     STA $0038       ;poke 56,28: CLR
-  
-    LDX #$00        ; load x=255 for for loop; loop from 0-511    
+
+    LDX #$00        ; load x=255 for for loop; loop from 0-511
 setchar1
     LDA $8000,x   ;load each char from ROM
     ;LDA #$FF        ;make each char a block
@@ -160,7 +171,7 @@ setchar1
     INX
     CPX #$FF
     BNE setchar1
-    
+
     LDX #$00
 setchar2
     LDA $8100,x
@@ -169,16 +180,16 @@ setchar2
     INX
     CPX #$FF
     BNE setchar2
-    
+
 storeship          ;function that draws the screen based on whats stored
-    LDX #$0  
-storeship1    
+    LDX #$0
+storeship1
     LDA ship,x      ;Chatset location 27 or dec 7195-7267. 9 char change
     STA $1D10,x
     INX
     CPX #$48       ;dec 72 = 9*8
     BNE storeship1
-    
+
     LDX #$00
 block              ;but block char in to screen code 0
     LDA $8330,x
@@ -186,49 +197,68 @@ block              ;but block char in to screen code 0
     INX
     CPX #$08
     BNE block
-    
+
     RTS
-    
-    
-   
+
+
+
 updatedata
 
 
     RTS
-   
-updatescreen                ;this just draws our ship
-    LDA #$22 
-    STA $1E00
+
+updateship                ;this just draws our ship
+    LDA #$22
+	LDX shipco
+    STA $1E16,x
     LDA #$23
-    STA $1E01
-    LDA #$24 
-    STA $1E02
-    LDA #$25 
-    STA $1E16
-    LDA #$26 
-    STA $1E17
-    LDA #$27 
-    STA $1E18  
-    LDA #$28 
-    STA $1E2C
-    LDA #$29 
-    STA $1E2D
-    LDA #$2A 
-    STA $1E2E 
-    LDA #$00 
-    STA $1E2F 
-    
-    
-    RTS
+    STA $1E17,x
+    LDA #$24
+    STA $1E18,x
+    LDA #$25
+    STA $1E2C,x
+    LDA #$26
+    STA $1E2D,x
+    LDA #$27
+    STA $1E2E,x
+    LDA #$28
+    STA $1E42,x
+    LDA #$29
+    STA $1E43,x
+    LDA #$2A
+    STA $1E44,x
+
+	RTS
     ;memory the spaceship
     ;print it to screen.
 
-;=============================================================================  
+drawroof
+	LDX #$00			;horizontal counter
+printcolr
+	LDA #$00				;Load roof block
+	STA $1E00,x				;print roof block
+	INX
+	CPX #$16
+	BNE printcolr
+	RTS
+
+drawfloor
+	LDX #$00			;counter
+	LDY topscreen,x		;Load the number of times we will print a block
+printcolf
+	LDA #$00				;Load roof block
+	STA $1FE4,x				;print roof block
+	INX
+	CPX #$16
+	BNE printcolf
+	RTS
+
+;=============================================================================
 ;=============================================================================
 ;DATA
     org $1800        ;dec  6144
-             
-ship    
+
+ship
     .BYTE   $00,$00,$00,$01,$07,$0F,$1F,$3F ;[0][0]
     .BYTE   $00,$00,$00,$F8,$FE,$FF,$FF,$FF ;[0][1]
     .BYTE   $00,$00,$00,$00,$00,$00,$80,$C0 ;[0][2]
@@ -238,5 +268,14 @@ ship
     .BYTE   $7F,$3F,$3F,$1F,$0F,$07,$01,$00 ;[2][0]
     .BYTE   $FF,$FF,$FF,$FF,$FF,$FF,$FB,$01 ;[2][1]
     .BYTE   $FC,$F8,$E0,$C0,$E0,$F0,$F0,$E0 ;[2][2]
-    
-screen
+
+topscreen	;22 bytes showing the depth of the roof for each spot
+	.BYTE $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01
+	.BYTE $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01
+
+bottomscreen	;22 bytes showing the depth of the floor for each spot
+	.BYTE $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01
+	.BYTE $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01
+
+shipco
+	.BYTE $06
