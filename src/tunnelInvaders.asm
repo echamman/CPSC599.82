@@ -1,5 +1,5 @@
 ;The full game
-
+;STUB 4096-4110; Code 4110-6144; DATA 6144-7168; Charset 7168-7680
 	processor 6502
 
 	seg
@@ -49,7 +49,7 @@ color2	LDA #$1
 
     JSR clearscreen
 
-msg			;Prints 'PRESS START' - Appendix E
+msg			        ;Prints 'PRESS START' - Appendix E
 	LDA #$10
 	STA $1EB6
 	LDA #$12
@@ -82,15 +82,17 @@ quitIntro
     RTS
 
 clearscreen
-	LDX #$FF	;print1 and print2 are printing ' ' to the screen - Appendix E
-print1	LDA #$20
+	LDX #$FF	    ;print1 and print2 are printing ' ' to the screen - Appendix E
+print1	
+    LDA #$20        ;#$20 is space
 	STA $1DFE,X
 	DEX
 	CPX #$0
 	BNE print1
 
 	LDX #$FF
-print2	LDA #$20
+print2	
+    LDA #$20
 	STA $1EFD,X
 	DEX
 	CPX #$0
@@ -138,9 +140,34 @@ endInput
 	STX $9122		;else restore VIA#2
 	RTS
 
+setchar             ;Store the character set in RAM
+                    ;replicate POKE 36859,255 = 8FFB,FF
+                    ;for i = 7168 to 7679:Poke I, PEEk(i+25600):NEXT
+                    
+    LDX #$00        ; load x=255 for for loop; loop from 0-511    
+loop1
+    LDA #$1C00+x,$memoffset
+    STA #$1C00,x
+    INX
+    CPX #$FF
+    BNE loop1
+    
+    RTS
+
+    
 main
     JSR clearscreen
     JSR checkInput
     RTS
     ;memory the spaceship
     ;print it to screen.
+
+    
+    
+;=============================================================================
+;DATA
+    org 1800        ;dec  6144
+    
+memoffset   .BYTE $64,$00    ;dec 25600 const offset for charset mapping to RAM
+bgncharset  .BYTE $1C,$00                            
+
