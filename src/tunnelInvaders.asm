@@ -26,7 +26,9 @@ stub	.BYTE #$0	;New line
     JSR setchars     ;Loads charset from ROM to RAM
     JSR intro
 gameloop            ;check input,update data, draw data to screen
-    JSR main
+    JSR checkInput  ;returns user input to Reg Y
+    JSR updatedata  ;based off Reg Y update certain blocks
+    JSR updatescreen        ;draw changes
     LDA #$01
     BNE gameloop
 
@@ -152,18 +154,18 @@ setchars             ;Store the character set in RAM
   
     LDX #$00        ; load x=255 for for loop; loop from 0-511    
 setchar1
-    LDA #$8000,x   ;load each char from ROM
+    LDA $8000,x   ;load each char from ROM
     ;LDA #$FF        ;make each char a block
-    STA #$1C00,x    ;store them in 7168-7423
+    STA $1C00,x    ;store them in 7168-7423
     INX
     CPX #$FF
     BNE setchar1
     
     LDX #$00
 setchar2
-    LDA #$8100,x
+    LDA $8100,x
     ;LDA #$FF
-    STA #$1D00,x    ;store them in 7424-7680
+    STA $1D00,x    ;store them in 7424-7680
     INX
     CPX #$FF
     BNE setchar2
@@ -176,9 +178,25 @@ storeship1
     INX
     CPX #$48       ;dec 72 = 9*8
     BNE storeship1
+    
+    LDX #$00
+block              ;but block char in to screen code 0
+    LDA $8330,x
+    STA $1C00,x
+    INX
+    CPX #$08
+    BNE block
+    
     RTS
     
-main                ;this just draws our ship
+    
+   
+updatedata
+
+
+    RTS
+   
+updatescreen                ;this just draws our ship
     LDA #$22 
     STA $1E00
     LDA #$23
@@ -197,16 +215,15 @@ main                ;this just draws our ship
     STA $1E2D
     LDA #$2A 
     STA $1E2E 
-    JSR checkInput
+    LDA #$00 
+    STA $1E2F 
+    
+    
     RTS
     ;memory the spaceship
     ;print it to screen.
 
-;=============================================================================
-;notes
-;    LDA #$00 <- @
-;    STA $1E00 <- this puts accumulator in the write buffer    
-    
+;=============================================================================  
 ;=============================================================================
 ;DATA
     org $1800        ;dec  6144
@@ -222,3 +239,4 @@ ship
     .BYTE   $FF,$FF,$FF,$FF,$FF,$FF,$FB,$01 ;[2][1]
     .BYTE   $FC,$F8,$E0,$C0,$E0,$F0,$F0,$E0 ;[2][2]
     
+screen
