@@ -250,11 +250,19 @@ updatedown
 updateleft
 	CPY #$04
 	BNE updateright
+	LDX shipcoX
+	CPX #$0
+	BEQ updateright
+	DEC shipcoX
 	DEC shipco
 	BEQ drawship
 updateright
 	CPY #$05
 	BNE drawship
+	LDX shipcoX
+	CPX #$13
+	BEQ drawship
+	INC shipcoX
 	INC shipco
 
 drawship
@@ -344,4 +352,10 @@ bottomscreen	;22 bytes showing the depth of the floor for each spot
 	.BYTE $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01
 
 shipco
-	.BYTE $06
+	.BYTE #$00
+
+shipcoX
+	.BYTE #$00
+
+shipcoY
+	.BYTE #$00
