@@ -316,12 +316,41 @@ brendan1
 next
     LDA topscreen,y     ;load the contents of the element of topscreen[y]
     CMP depth           ;compare A with depth 
-    BMI brendan1        ;if depth > A then try next element
+    BMI brendan1        ;if depth > A then try next element 
+    DEX                 ;x--
+    STX internum        ;store (depth-1) -> internum[0]
+    INX                 ;restore x++
+    JSR mul22
     LDA #$00            ;else depth <= A then draw; store block in A
     STA $1E00,y;+((depth-1)*22)         ;print block at y; will need to 
     BEQ brendan1        ;to next elem
 done
     RTS    
+                        ;we have to learn how to push to stack to properly
+                        ;save x and y in previous subroutine
+mul22                   ;assume input is y. F(y) = y*22 = x1 + x2 + x3
+    LDA internum
+    LDA #$00            ;x=0
+    ASL           
+    ASL
+    ASL
+    ASL
+    STA internum,x      ;internum[0] = x1
+    INX                 ;x=1
+    TYA
+    ASL
+    ASL
+    STA internum,x      ;internum[1] = x2
+    TYA
+    ASL
+    ADC internum,x      ;x = x3 + x2
+    DEX                 ;X = 0
+    ADC internum,x      ;x = x + x1 
+    STA internum,x
+    RTS
+    
+    
+    
     
 drawfloor
 	LDX #$00			;counter
@@ -388,3 +417,6 @@ shipcoY
 
 depth 
     .BYTE $00
+    
+internum
+    .BYTE $00,$00
