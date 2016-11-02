@@ -117,6 +117,10 @@ psf
 	BNE psu			;branch to next check
 	LDY #$01		;1 is stored to Y if fire is held down
 	STY inputval
+	LDA #$0F    ;volume 15
+	STA $900E   ;store the volume in volume memory
+	LDA #$87    ;music note C
+	STA $900A   ;store into speaker 1
 	BNE endInput
 psu
 	LDA $9111		;load joystick input
@@ -216,7 +220,7 @@ updateship                ;this just draws our ship
 	LDX shipco
     STA $1E16,x
     LDA #$20
-    STA $1E17,x
+	STA $1E17,x
     LDA #$20
     STA $1E18,x
     LDA #$20
@@ -232,6 +236,7 @@ updateship                ;this just draws our ship
     LDA #$20
     STA $1E44,x
 
+updates
 	;This is called immediately after getinput, so the Y value contains the direction
 	LDY inputval
 	CPY #$02
@@ -304,34 +309,34 @@ brendan
     LDX #$00            ;Depth
 brendan2
     INX                 ;increase depth
-    CPX #$0B            ;compare depth and elem to 11,21 
+    CPX #$0B            ;compare depth and elem to 11,21
     BEQ done            ;if both 0 then done
     LDY #$FF            ;block element
     STX depth           ;Store depth
-brendan1   
+brendan1
     INY
     CPY #$16            ;compare y with 22 outtabounds
     BEQ brendan2        ;if equal to 22 then set y=0, x++
     BNE next            ;if neq to 22 then print block at y
 next
     LDA topscreen,y     ;load the contents of the element of topscreen[y]
-    CMP depth           ;compare A with depth 
-    BMI brendan1        ;if depth > A then try next element 
+    CMP depth           ;compare A with depth
+    BMI brendan1        ;if depth > A then try next element
     DEX                 ;x--
     STX internum        ;store (depth-1) -> internum[0]
     INX                 ;restore x++
     JSR mul22
     LDA #$00            ;else depth <= A then draw; store block in A
-    STA $1E00,y;+((depth-1)*22)         ;print block at y; will need to 
+    STA $1E00,y;+((depth-1)*22)         ;print block at y; will need to
     BEQ brendan1        ;to next elem
 done
-    RTS    
+    RTS
                         ;we have to learn how to push to stack to properly
                         ;save x and y in previous subroutine
 mul22                   ;assume input is y. F(y) = y*22 = x1 + x2 + x3
     LDA internum
     LDA #$00            ;x=0
-    ASL           
+    ASL
     ASL
     ASL
     ASL
@@ -345,13 +350,13 @@ mul22                   ;assume input is y. F(y) = y*22 = x1 + x2 + x3
     ASL
     ADC internum,x      ;x = x3 + x2
     DEX                 ;X = 0
-    ADC internum,x      ;x = x + x1 
+    ADC internum,x      ;x = x + x1
     STA internum,x
     RTS
-    
-    
-    
-    
+
+
+
+
 drawfloor
 	LDX #$00			;counter
 	LDY topscreen,x		;Load the number of times we will print a block
@@ -405,7 +410,7 @@ bottomscreen	;22 bytes showing the depth of the floor for each spot
 
 ycoord
     .WORD $
-    
+
 shipco
 	.BYTE #$00
 
@@ -415,8 +420,8 @@ shipcoX
 shipcoY
 	.BYTE #$00
 
-depth 
+depth
     .BYTE $00
-    
+
 internum
     .BYTE $00,$00
