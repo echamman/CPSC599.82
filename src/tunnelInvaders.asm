@@ -28,7 +28,7 @@ stub	.BYTE #$0	;New line
 gameloop            ;check input,update data, draw data to screen
     JSR checkInput  ;returns user input to Reg Y
 	JSR updateship  ;draw changes to ship
-    JSR updatedata  ;based off Reg Y update certain blocks
+    ;JSR updatedata  ;based off Reg Y update certain blocks
 	JSR drawroof
 	JSR drawfloor
 	JSR waitTurn
@@ -117,35 +117,35 @@ psf
 	BNE psu			;branch to next check
 	LDY #$01		;1 is stored to Y if fire is held down
 	STY inputval
-	BEQ endInput
+	BNE endInput
 psu
 	LDA $9111		;load joystick input
 	EOR #$FB		;XOR against bitmask
 	BNE psd			;branch to next check
 	LDY #$02		;2 is stored to Y if up is held down
 	STY inputval
-	BEQ endInput
+	BNE endInput
 psd
 	LDA $9111		;load joystick input
 	EOR #$F7		;XOR against bitmask
 	BNE psl			;branch to next check
 	LDY #$03		;3 is stored to Y if down is held down
 	STY inputval
-	BEQ endInput
+	BNE endInput
 psl
 	LDA $9111		;load joystick input
 	EOR #$EF		;XOR against bitmask
-	BEQ psr			;branch to next check
+	BNE psr			;branch to next check
 	LDY #$04		;4 is stored to Y if left is held down
 	STY inputval
-	BEQ endInput
+	BNE endInput
 psr
 	LDA $9120		;load joystick input (VIA2)
 	EOR #$7F		;XOR against bitmask
-	BEQ noPush		;branch to next check
+	BNE noPush		;branch to next check
 	LDY #$05		;5 is stored to Y if right is held down
 	STY inputval
-	BEQ endInput
+	BNE endInput
 noPush
 	LDY #$00		;0 is stored to Y if nothing is pushed
 	STY inputval
@@ -206,6 +206,12 @@ updatedata
     RTS
 
 updateship                ;this just draws our ship
+	LDY inputval		;Skip updating ship if no movement
+	CPY #$00
+	BEQ drawship
+	CPY #$01
+	BEQ drawship
+
     LDA #$20
 	LDX shipco
     STA $1E16,x
@@ -244,12 +250,12 @@ updatedown
 updateleft
 	CPY #$04
 	BNE updateright
-	INC shipco
+	DEC shipco
 	BEQ drawship
 updateright
 	CPY #$05
 	BNE drawship
-	DEC shipco
+	INC shipco
 
 drawship
 	LDA #$22
@@ -299,7 +305,7 @@ printcolf
 
 waitTurn
 	LDA $00A2		;load least sig byte of system clock
-	ADC #$03
+	ADC #$02
 	STA currTime
 hold
 	LDA $00A2		;load least sig byte of system clock
@@ -314,6 +320,9 @@ hold
 
 currTime
 	.BYTE #$00
+
+inputval
+	.BYTE
 
 ship
     .BYTE   $00,$00,$00,$01,$07,$0F,$1F,$3F ;[0][0]
@@ -336,6 +345,3 @@ bottomscreen	;22 bytes showing the depth of the floor for each spot
 
 shipco
 	.BYTE $06
-
-inputval
-	.BYTE
