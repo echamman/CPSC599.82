@@ -207,8 +207,8 @@ updatedata
     RTS
 
 updateship                ;this just draws our ship
-	LDY shipcoY
-	CPY #$08
+	LDY shipcoY				;deciding which drawing function to call based on Y
+	CPY #$08				;we need 2 because we cannot use 1 offset for the whole screen
 	BMI drawship0
 	JMP drawship1
 
@@ -222,8 +222,8 @@ drawship0
 
 clearship0
     LDA #$20
-	LDX shipco0
-    STA $1E16,x
+	LDX shipco0			;Clearing ship based on offset, done before
+    STA $1E16,x			;processing input
     LDA #$20
 	STA $1E17,x
     LDA #$20
@@ -249,14 +249,14 @@ updates
 	LDA shipcoY			;check if the Y is 00, if it is don't move up
 	CMP #$00
 	BEQ drawship01
-	DEC shipcoY
+	DEC shipcoY			;alter Y counter and also offset
 	LDA shipco0
 	SBC #$16
 	STA shipco0
 	BEQ drawship01
 updatedown
 	CPY #$03
-	BNE updateleft
+	BNE updateleft		;Update Y counter and offset
 	LDA shipco0
 	ADC #$15
 	STA shipco0
@@ -265,8 +265,8 @@ updatedown
 updateleft
 	CPY #$04
 	BNE updateright
-	LDX shipcoX
-	CPX #$0
+	LDX shipcoX					;Update X counter, and alter offset
+	CPX #$0						;also bounds-check X
 	BEQ drawship01
 	DEC shipcoX
 	DEC shipco0
@@ -274,7 +274,7 @@ updateleft
 	BEQ drawship01
 updateright
 	CPY #$05
-	BNE drawship01
+	BNE drawship01			;Update X counter and offset
 	LDX shipcoX
 	CPX #$13
 	BEQ drawship01
@@ -284,7 +284,7 @@ updateright
 
 drawship01
 	LDA #$22
-	LDX shipco0
+	LDX shipco0				;reprint ship based on offset
 	STA $1E16,x
 	LDA #$23
 	STA $1E17,x
@@ -317,8 +317,8 @@ drawship1
 
 clearship1
 	LDA #$20
-	LDX shipco1
-	STA $1EC6,x
+	LDX shipco1			;Clears ship based on offset, must be one before
+	STA $1EC6,x			;processing input, because the process alters the offset
 	LDA #$20
 	STA $1EC7,x
 	LDA #$20
@@ -340,10 +340,10 @@ clearship1
 	LDY inputval
 	CPY #$02
 	BNE updatedown1
-	DEC shipcoY
-	LDA shipco1
-	SBC #$16
-	STA shipco1
+	DEC shipcoY				;Decrementing the Y counter, also checking if you go above the limit because
+	LDA shipco1				;then you need to print it with the other function, drawship0, since
+	SBC #$16				;it is then in that half
+	STA shipco1				;Also adds the appropriate amount to the offset to position the ship
 	LDA shipcoY
 	CMP #$09
 	BPL tempskip
@@ -363,7 +363,7 @@ updatedown1
 	BEQ drawship11
 updateleft1
 	CPY #$04
-	BNE updateright1
+	BNE updateright1		;Update X counter and offset
 	LDX shipcoX
 	CPX #$0
 	BEQ drawship11
@@ -374,7 +374,7 @@ updateleft1
 updateright1
 	CPY #$05
 	BNE drawship11
-	LDX shipcoX
+	LDX shipcoX				;Update X counter and offset
 	CPX #$13
 	BEQ drawship11
 	INC shipcoX
@@ -383,7 +383,7 @@ updateright1
 
 drawship11
 	LDA #$22
-	LDX shipco1
+	LDX shipco1				;Redraws ship based on offset
 	STA $1EC6,x
 	LDA #$23
 	STA $1EC7,x
@@ -574,16 +574,16 @@ bottomscreen	;22 bytes showing the depth of the floor for each spot
 ycoord
     .WORD $
 
-shipco0
+shipco0					;offset of ship for top half
 	.BYTE #$00
 
-shipco1
+shipco1					;offset of ship for bottom half
 	.BYTE #$00
 
-shipcoX
+shipcoX					;X position of ship
 	.BYTE #$00
 
-shipcoY
+shipcoY					;Y position of ship
 	.BYTE #$00
 
 depth
