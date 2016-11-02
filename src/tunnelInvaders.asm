@@ -117,10 +117,6 @@ psf
 	BNE psu			;branch to next check
 	LDY #$01		;1 is stored to Y if fire is held down
 	STY inputval
-	LDA #$0F    ;volume 15
-	STA $900E   ;store the volume in volume memory
-	LDA #$87    ;music note C
-	STA $900A   ;store into speaker 1
 	BNE endInput
 psu
 	LDA $9111		;load joystick input
