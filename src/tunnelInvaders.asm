@@ -338,4 +338,4 @@ shipco
 	.BYTE $06
 
 inputval
-	.BYTE
+	.BYTE #$FF
