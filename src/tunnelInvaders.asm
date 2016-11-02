@@ -206,14 +206,22 @@ updatedata
     RTS
 
 updateship                ;this just draws our ship
+	LDY shipcoY
+	CPY #$08
+	BMI drawship0
+	JMP drawship1
+
+drawship0
 	LDY inputval		;Skip updating ship if no movement
 	CPY #$00
-	BEQ drawship
+	BNE clearship0
 	CPY #$01
-	BEQ drawship
+	BNE clearship0
+	JMP drawship01
 
+clearship0
     LDA #$20
-	LDX shipco
+	LDX shipco0
     STA $1E16,x
     LDA #$20
 	STA $1E17,x
@@ -237,38 +245,45 @@ updates
 	LDY inputval
 	CPY #$02
 	BNE updatedown
-	LDA shipco
+	LDA shipcoY			;check if the Y is 00, if it is don't move up
+	CMP #$00
+	BEQ drawship01
+	DEC shipcoY
+	LDA shipco0
 	SBC #$16
-	STA shipco
-	BEQ drawship
+	STA shipco0
+	BEQ drawship01
 updatedown
 	CPY #$03
 	BNE updateleft
-	LDA shipco
+	LDA shipco0
 	ADC #$15
-	STA shipco
-	BEQ drawship
+	STA shipco0
+	INC shipcoY
+	BEQ drawship01
 updateleft
 	CPY #$04
 	BNE updateright
 	LDX shipcoX
 	CPX #$0
-	BEQ updateright
+	BEQ drawship01
 	DEC shipcoX
-	DEC shipco
-	BEQ drawship
+	DEC shipco0
+	DEC shipco1
+	BEQ drawship01
 updateright
 	CPY #$05
-	BNE drawship
+	BNE drawship01
 	LDX shipcoX
 	CPX #$13
-	BEQ drawship
+	BEQ drawship01
 	INC shipcoX
-	INC shipco
+	INC shipco0
+	INC shipco1
 
-drawship
+drawship01
 	LDA #$22
-	LDX shipco
+	LDX shipco0
 	STA $1E16,x
 	LDA #$23
 	STA $1E17,x
@@ -291,6 +306,103 @@ drawship
     ;memory the spaceship
     ;print it to screen.
 
+drawship1
+	LDY inputval		;Skip updating ship if no movement
+	CPY #$00
+	BNE clearship1
+	CPY #$01
+	BNE clearship1
+	JMP drawship11
+
+clearship1
+	LDA #$20
+	LDX shipco1
+	STA $1EC6,x
+	LDA #$20
+	STA $1EC7,x
+	LDA #$20
+	STA $1EC8,x
+	LDA #$20
+	STA $1EDC,x
+	LDA #$20
+	STA $1EDD,x
+	LDA #$20
+	STA $1EDE,x
+	LDA #$20
+	STA $1EF2,x
+	LDA #$20
+	STA $1EF3,x
+	LDA #$20
+	STA $1EF4,x
+
+	;This is called immediately after getinput, so the Y value contains the direction
+	LDY inputval
+	CPY #$02
+	BNE updatedown1
+	DEC shipcoY
+	LDA shipco1
+	SBC #$16
+	STA shipco1
+	LDA shipcoY
+	CMP #$09
+	BPL tempskip
+	JMP drawship0
+tempskip
+	BEQ drawship11
+updatedown1
+	CPY #$03
+	BNE updateleft1
+	LDA shipcoY				;Don't move down if ship is at bottom of screen
+	CMP #$12
+	BEQ drawship11
+	INC shipcoY
+	LDA shipco1
+	ADC #$16
+	STA shipco1
+	BEQ drawship11
+updateleft1
+	CPY #$04
+	BNE updateright1
+	LDX shipcoX
+	CPX #$0
+	BEQ drawship11
+	DEC shipcoX
+	DEC shipco0
+	DEC shipco1
+	BEQ drawship11
+updateright1
+	CPY #$05
+	BNE drawship11
+	LDX shipcoX
+	CPX #$13
+	BEQ drawship11
+	INC shipcoX
+	INC shipco0
+	INC shipco1
+
+drawship11
+	LDA #$22
+	LDX shipco1
+	STA $1EC6,x
+	LDA #$23
+	STA $1EC7,x
+	LDA #$24
+	STA $1EC8,x
+	LDA #$25
+	STA $1EDC,x
+	LDA #$26
+	STA $1EDD,x
+	LDA #$27
+	STA $1EDE,x
+	LDA #$28
+	STA $1EF2,x
+	LDA #$29
+	STA $1EF3,x
+	LDA #$2A
+	STA $1EF4,x
+
+	RTS
+
 drawroof
 	LDX #$00			;horizontal counter
 printcolr
@@ -300,6 +412,8 @@ printcolr
 	CPX #$16
 	BNE printcolr
 	RTS
+
+
 
 brendan
     LDX #$00            ;Depth
@@ -407,7 +521,10 @@ bottomscreen	;22 bytes showing the depth of the floor for each spot
 ycoord
     .WORD $
 
-shipco
+shipco0
+	.BYTE #$00
+
+shipco1
 	.BYTE #$00
 
 shipcoX
