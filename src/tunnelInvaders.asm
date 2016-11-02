@@ -32,6 +32,7 @@ gameloop            ;check input,update data, draw data to screen
     JSR updateship        ;draw changes
 	JSR drawroof
 	JSR drawfloor
+	JSR waitTurn
     LDA #$01
     BNE gameloop
 
@@ -132,7 +133,7 @@ psd
 	BNE psl			;branch to next check
 	LDY #$03		;3 is stored to Y if down is held down
 	LDA shipco
-	ADC #$16
+	ADC #$15
 	STA shipco
 	BEQ endInput
 psl
@@ -252,11 +253,24 @@ printcolf
 	CPX #$16
 	BNE printcolf
 	RTS
+	
+waitTurn
+	LDA $00A2		;load least sig byte of system clock
+	ADC #$03
+	STA currTime
+hold
+	LDA $00A2		;load least sig byte of system clock
+	CMP currTime
+	BNE hold
+	RTS
 
 ;=============================================================================
 ;=============================================================================
 ;DATA
     org $1800        ;dec  6144
+	
+currTime
+	.BYTE #$00
 
 ship
     .BYTE   $00,$00,$00,$01,$07,$0F,$1F,$3F ;[0][0]
