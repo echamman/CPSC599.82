@@ -29,7 +29,7 @@ gameloop            ;check input,update data, draw data to screen
     JSR checkInput  ;returns user input to Reg Y
 	JSR updateship  ;draw changes to ship
     ;JSR updatedata  ;based off Reg Y update certain blocks
-	JSR drawroof
+	JSR brendan
 	JSR drawfloor
 	JSR waitTurn
     LDA #$01
@@ -300,6 +300,29 @@ printcolr
 	BNE printcolr
 	RTS
 
+brendan
+    LDX #$00            ;Depth
+brendan2
+    INX                 ;increase depth
+    CPX #$0B            ;compare depth and elem to 11,21 
+    BEQ done            ;if both 0 then done
+    LDY #$FF            ;block element
+    STX depth           ;Store depth
+brendan1   
+    INY
+    CPY #$16            ;compare y with 22 outtabounds
+    BEQ brendan2        ;if equal to 22 then set y=0, x++
+    BNE next            ;if neq to 22 then print block at y
+next
+    LDA topscreen,y     ;load the contents of the element of topscreen[y]
+    CMP depth           ;compare A with depth 
+    BMI brendan1        ;if depth > A then try next element
+    LDA #$00            ;else depth <= A then draw; store block in A
+    STA $1E00,y;+((depth-1)*22)         ;print block at y; will need to 
+    BEQ brendan1        ;to next elem
+done
+    RTS    
+    
 drawfloor
 	LDX #$00			;counter
 	LDY topscreen,x		;Load the number of times we will print a block
@@ -344,13 +367,16 @@ ship
     .BYTE   $FC,$F8,$E0,$C0,$E0,$F0,$F0,$E0 ;[2][2]
 
 topscreen	;22 bytes showing the depth of the roof for each spot
-	.BYTE $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01
-	.BYTE $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01
+	.BYTE $01, $02, $03, $04, $03, $04, $05, $06, $05, $04, $03
+	.BYTE $03, $04, $05, $06, $07, $06, $05, $04, $03, $02, $01
 
 bottomscreen	;22 bytes showing the depth of the floor for each spot
-	.BYTE $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01
-	.BYTE $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01
+	.BYTE $0B, $0a, $09, $08, $07, $06, $05, $04, $05, $06, $07
+	.BYTE $07, $06, $05, $04, $03, $04, $05, $06, $07, $08, $09
 
+ycoord
+    .WORD $
+    
 shipco
 	.BYTE #$00
 
@@ -359,3 +385,6 @@ shipcoX
 
 shipcoY
 	.BYTE #$00
+
+depth 
+    .BYTE $00
