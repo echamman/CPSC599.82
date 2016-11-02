@@ -27,9 +27,8 @@ stub	.BYTE #$0	;New line
     JSR intro
 gameloop            ;check input,update data, draw data to screen
     JSR checkInput  ;returns user input to Reg Y
-	JSR clearscreen
+	JSR updateship  ;draw changes to ship
     JSR updatedata  ;based off Reg Y update certain blocks
-    JSR updateship        ;draw changes
 	JSR drawroof
 	JSR drawfloor
 	JSR waitTurn
@@ -117,41 +116,39 @@ psf
 	EOR #$DF		;XOR against bitmask
 	BNE psu			;branch to next check
 	LDY #$01		;1 is stored to Y if fire is held down
+	STY inputval
 	BEQ endInput
 psu
 	LDA $9111		;load joystick input
 	EOR #$FB		;XOR against bitmask
 	BNE psd			;branch to next check
 	LDY #$02		;2 is stored to Y if up is held down
-	LDA shipco
-	SBC #$16
-	STA shipco
+	STY inputval
 	BEQ endInput
 psd
 	LDA $9111		;load joystick input
 	EOR #$F7		;XOR against bitmask
 	BNE psl			;branch to next check
 	LDY #$03		;3 is stored to Y if down is held down
-	LDA shipco
-	ADC #$15
-	STA shipco
+	STY inputval
 	BEQ endInput
 psl
 	LDA $9111		;load joystick input
 	EOR #$EF		;XOR against bitmask
 	BEQ psr			;branch to next check
 	LDY #$04		;4 is stored to Y if left is held down
-	INC shipco
+	STY inputval
 	BEQ endInput
 psr
 	LDA $9120		;load joystick input (VIA2)
 	EOR #$7F		;XOR against bitmask
 	BEQ noPush		;branch to next check
 	LDY #$05		;5 is stored to Y if right is held down
-	DEC shipco
+	STY inputval
 	BEQ endInput
 noPush
 	LDY #$00		;0 is stored to Y if nothing is pushed
+	STY inputval
 endInput
 	STX $9122		;else restore VIA#2
 	RTS
@@ -209,25 +206,71 @@ updatedata
     RTS
 
 updateship                ;this just draws our ship
-    LDA #$22
+    LDA #$20
 	LDX shipco
     STA $1E16,x
-    LDA #$23
+    LDA #$20
     STA $1E17,x
-    LDA #$24
+    LDA #$20
     STA $1E18,x
-    LDA #$25
+    LDA #$20
     STA $1E2C,x
-    LDA #$26
+    LDA #$20
     STA $1E2D,x
-    LDA #$27
+    LDA #$20
     STA $1E2E,x
-    LDA #$28
+    LDA #$20
     STA $1E42,x
-    LDA #$29
+    LDA #$20
     STA $1E43,x
-    LDA #$2A
+    LDA #$20
     STA $1E44,x
+
+	;This is called immediately after getinput, so the Y value contains the direction
+	LDY inputval
+	CPY #$02
+	BNE updatedown
+	LDA shipco
+	SBC #$16
+	STA shipco
+	BEQ drawship
+updatedown
+	CPY #$03
+	BNE updateleft
+	LDA shipco
+	ADC #$15
+	STA shipco
+	BEQ drawship
+updateleft
+	CPY #$04
+	BNE updateright
+	INC shipco
+	BEQ drawship
+updateright
+	CPY #$05
+	BNE drawship
+	DEC shipco
+
+drawship
+	LDA #$22
+	LDX shipco
+	STA $1E16,x
+	LDA #$23
+	STA $1E17,x
+	LDA #$24
+	STA $1E18,x
+	LDA #$25
+	STA $1E2C,x
+	LDA #$26
+	STA $1E2D,x
+	LDA #$27
+	STA $1E2E,x
+	LDA #$28
+	STA $1E42,x
+	LDA #$29
+	STA $1E43,x
+	LDA #$2A
+	STA $1E44,x
 
 	RTS
     ;memory the spaceship
@@ -253,7 +296,7 @@ printcolf
 	CPX #$16
 	BNE printcolf
 	RTS
-	
+
 waitTurn
 	LDA $00A2		;load least sig byte of system clock
 	ADC #$03
@@ -268,7 +311,7 @@ hold
 ;=============================================================================
 ;DATA
     org $1800        ;dec  6144
-	
+
 currTime
 	.BYTE #$00
 
@@ -293,3 +336,6 @@ bottomscreen	;22 bytes showing the depth of the floor for each spot
 
 shipco
 	.BYTE $06
+
+inputval
+	.BYTE
