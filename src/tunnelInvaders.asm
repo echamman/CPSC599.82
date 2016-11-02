@@ -31,6 +31,7 @@ gameloop            ;check input,update data, draw data to screen
     ;JSR updatedata  ;based off Reg Y update certain blocks
 	JSR brendan
 	JSR drawfloor
+	JSR printScoreLevel
 	JSR waitTurn
     LDA #$01
     BNE gameloop
@@ -353,7 +354,7 @@ updatedown1
 	CPY #$03
 	BNE updateleft1
 	LDA shipcoY				;Don't move down if ship is at bottom of screen
-	CMP #$12
+	CMP #$11				;modified to allow score space -CJH
 	BEQ drawship11
 	INC shipcoY
 	LDA shipco1
@@ -472,10 +473,55 @@ drawfloor
 	LDY topscreen,x		;Load the number of times we will print a block
 printcolf
 	LDA #$00				;Load roof block
-	STA $1FE4,x				;print roof block
+	STA $1FCE,x				;Modified to allow for score screenspace -CJH
 	INX
 	CPX #$16
 	BNE printcolf
+	RTS
+	
+	;begins at 1FE4, will later run from memory locations for score/level numbers.
+	;Need to write int to output conversion method before
+printScoreLevel			 
+	LDA #$13		;S
+	STA $1FE5
+	LDA #$03		;C
+	STA $1FE6
+	LDA #$0F		;O
+	STA $1FE7
+	LDA #$12		;R
+	STA $1FE8
+	LDA #$05		;E
+	STA $1FE9
+	LDA #$30		;0
+	STA $1FEB
+	LDA #$30		;0
+	STA $1FEC
+	LDA #$30		;0
+	STA $1FED
+	
+	LDA #$0C		;L
+	STA $1FF0
+	LDA #$05		;E
+	STA $1FF1
+	LDA #$16		;V
+	STA $1FF2
+	LDA #$05		;E
+	STA $1FF3
+	LDA #$0C		;L
+	STA $1FF4
+	LDA #$31		;1
+	STA $1FF6
+	LDA #$2D		;-
+	STA $1FF7
+	LDA #$31		;1
+	STA $1FF8
+	
+	
+	
+	
+	
+	
+	
 	RTS
 
 waitTurn
@@ -494,6 +540,13 @@ hold
     org $1800        ;dec  6144
 
 currTime
+	.BYTE #$00
+	
+currScoreOnes
+	.BYTE #$00
+currScoreTens
+	.BYTE #$00
+currScoreHuns
 	.BYTE #$00
 
 inputval
