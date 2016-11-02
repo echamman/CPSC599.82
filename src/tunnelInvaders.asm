@@ -28,8 +28,8 @@ stub	.BYTE #$0	;New line
 gameloop            ;check input,update data, draw data to screen
     JSR checkInput  ;returns user input to Reg Y
 	JSR updateship  ;draw changes to ship
-    JSR updatedata  ;based off Reg Y update certain blocks
-	JSR drawroof
+    ;JSR updatedata  ;based off Reg Y update certain blocks
+	JSR brendan
 	JSR drawfloor
 	JSR waitTurn
     LDA #$01
@@ -117,35 +117,35 @@ psf
 	BNE psu			;branch to next check
 	LDY #$01		;1 is stored to Y if fire is held down
 	STY inputval
-	BEQ endInput
+	BNE endInput
 psu
 	LDA $9111		;load joystick input
 	EOR #$FB		;XOR against bitmask
 	BNE psd			;branch to next check
 	LDY #$02		;2 is stored to Y if up is held down
 	STY inputval
-	BEQ endInput
+	BNE endInput
 psd
 	LDA $9111		;load joystick input
 	EOR #$F7		;XOR against bitmask
 	BNE psl			;branch to next check
 	LDY #$03		;3 is stored to Y if down is held down
 	STY inputval
-	BEQ endInput
+	BNE endInput
 psl
 	LDA $9111		;load joystick input
 	EOR #$EF		;XOR against bitmask
-	BEQ psr			;branch to next check
+	BNE psr			;branch to next check
 	LDY #$04		;4 is stored to Y if left is held down
 	STY inputval
-	BEQ endInput
+	BNE endInput
 psr
 	LDA $9120		;load joystick input (VIA2)
 	EOR #$7F		;XOR against bitmask
-	BEQ noPush		;branch to next check
+	BNE noPush		;branch to next check
 	LDY #$05		;5 is stored to Y if right is held down
 	STY inputval
-	BEQ endInput
+	BNE endInput
 noPush
 	LDY #$00		;0 is stored to Y if nothing is pushed
 	STY inputval
@@ -206,6 +206,12 @@ updatedata
     RTS
 
 updateship                ;this just draws our ship
+	LDY inputval		;Skip updating ship if no movement
+	CPY #$00
+	BEQ drawship
+	CPY #$01
+	BEQ drawship
+
     LDA #$20
 	LDX shipco
     STA $1E16,x
@@ -244,12 +250,20 @@ updatedown
 updateleft
 	CPY #$04
 	BNE updateright
-	INC shipco
+	LDX shipcoX
+	CPX #$0
+	BEQ updateright
+	DEC shipcoX
+	DEC shipco
 	BEQ drawship
 updateright
 	CPY #$05
 	BNE drawship
-	DEC shipco
+	LDX shipcoX
+	CPX #$13
+	BEQ drawship
+	INC shipcoX
+	INC shipco
 
 drawship
 	LDA #$22
@@ -286,6 +300,58 @@ printcolr
 	BNE printcolr
 	RTS
 
+brendan
+    LDX #$00            ;Depth
+brendan2
+    INX                 ;increase depth
+    CPX #$0B            ;compare depth and elem to 11,21 
+    BEQ done            ;if both 0 then done
+    LDY #$FF            ;block element
+    STX depth           ;Store depth
+brendan1   
+    INY
+    CPY #$16            ;compare y with 22 outtabounds
+    BEQ brendan2        ;if equal to 22 then set y=0, x++
+    BNE next            ;if neq to 22 then print block at y
+next
+    LDA topscreen,y     ;load the contents of the element of topscreen[y]
+    CMP depth           ;compare A with depth 
+    BMI brendan1        ;if depth > A then try next element 
+    DEX                 ;x--
+    STX internum        ;store (depth-1) -> internum[0]
+    INX                 ;restore x++
+    JSR mul22
+    LDA #$00            ;else depth <= A then draw; store block in A
+    STA $1E00,y;+((depth-1)*22)         ;print block at y; will need to 
+    BEQ brendan1        ;to next elem
+done
+    RTS    
+                        ;we have to learn how to push to stack to properly
+                        ;save x and y in previous subroutine
+mul22                   ;assume input is y. F(y) = y*22 = x1 + x2 + x3
+    LDA internum
+    LDA #$00            ;x=0
+    ASL           
+    ASL
+    ASL
+    ASL
+    STA internum,x      ;internum[0] = x1
+    INX                 ;x=1
+    TYA
+    ASL
+    ASL
+    STA internum,x      ;internum[1] = x2
+    TYA
+    ASL
+    ADC internum,x      ;x = x3 + x2
+    DEX                 ;X = 0
+    ADC internum,x      ;x = x + x1 
+    STA internum,x
+    RTS
+    
+    
+    
+    
 drawfloor
 	LDX #$00			;counter
 	LDY topscreen,x		;Load the number of times we will print a block
@@ -299,7 +365,7 @@ printcolf
 
 waitTurn
 	LDA $00A2		;load least sig byte of system clock
-	ADC #$03
+	ADC #$02
 	STA currTime
 hold
 	LDA $00A2		;load least sig byte of system clock
@@ -315,6 +381,9 @@ hold
 currTime
 	.BYTE #$00
 
+inputval
+	.BYTE
+
 ship
     .BYTE   $00,$00,$00,$01,$07,$0F,$1F,$3F ;[0][0]
     .BYTE   $00,$00,$00,$F8,$FE,$FF,$FF,$FF ;[0][1]
@@ -327,15 +396,27 @@ ship
     .BYTE   $FC,$F8,$E0,$C0,$E0,$F0,$F0,$E0 ;[2][2]
 
 topscreen	;22 bytes showing the depth of the roof for each spot
-	.BYTE $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01
-	.BYTE $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01
+	.BYTE $01, $02, $03, $04, $03, $04, $05, $06, $05, $04, $03
+	.BYTE $03, $04, $05, $06, $07, $06, $05, $04, $03, $02, $01
 
 bottomscreen	;22 bytes showing the depth of the floor for each spot
-	.BYTE $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01
-	.BYTE $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01
+	.BYTE $0B, $0a, $09, $08, $07, $06, $05, $04, $05, $06, $07
+	.BYTE $07, $06, $05, $04, $03, $04, $05, $06, $07, $08, $09
 
+ycoord
+    .WORD $
+    
 shipco
-	.BYTE $06
+	.BYTE #$00
 
-inputval
-	.BYTE #$FF
+shipcoX
+	.BYTE #$00
+
+shipcoY
+	.BYTE #$00
+
+depth 
+    .BYTE $00
+    
+internum
+    .BYTE $00,$00
