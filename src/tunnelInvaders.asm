@@ -29,7 +29,7 @@ gameloop            ;check input,update data, draw data to screen
     JSR checkInput  ;returns user input to Reg Y
 	JSR updateship  ;draw changes to ship
     ;JSR updatedata  ;based off Reg Y update certain blocks
-	JSR brendan
+	JSR drawroof
 	JSR drawfloor
 	JSR printScoreLevel
 	JSR waitTurn
@@ -403,35 +403,22 @@ drawship11
 	RTS
 
 drawroof
-	LDX #$00			;horizontal counter
-printcolr
-	LDA #$00				;Load roof block
-	STA $1E00,x				;print roof block
-	INX
-	CPX #$16
-	BNE printcolr
-	RTS
-
-
-
-brendan
     LDX #$00            ;Depth
-brendan2
+drnextrow
     INX                 ;increase depth
     CPX #$0B            ;compare depth and elem to 11,21
-    BEQ done            ;if both 0 then done
+    BEQ drdone            ;if both 0 then done
     LDY #$FF            ;block element
     STX depth           ;Store depth
-brendan1
+drnextcol
     INY
     CLC
     CPY #$16            ;compare y with 22 outtabounds
-    BEQ brendan2        ;if equal to 22 then set y=0, x++
-    BNE next            ;if neq to 22 then print block at y
-next
+    BEQ drnextrow        ;if equal to 22 then set y=0, x++
+    
     LDA topscreen,y     ;load the contents of the element of topscreen[y]
     CMP depth           ;compare A with depth
-    BMI brendan1        ;if depth > A then try next element
+    BMI drnextcol        ;if depth > A then try next element
                 ;this chunck is prep for mul22
     TXA                 ;move x -> a
     PHA                 ;push x to stack
@@ -446,15 +433,14 @@ next
     TAX                 ;move a-> x
     
     STY oldy   
- 
     LDA internum
     ADC oldy
     TAY
     LDA #$00            ;else depth <= A then draw; store block in A
     STA $1E00,y;+((depth-1)*22)         ;print block at y; will need to
     LDY oldy      
-    JMP brendan1        ;to next elem
-done
+    JMP drnextcol        ;to next elem
+drdone
     RTS
 
                ;mul22 takes input in at internum[0],output at internum[0]
@@ -479,17 +465,46 @@ mul22                   ;assume input is y. F(y) = y*22 = x1 + x2 + x3
     STA internum
     RTS
 
-
 drawfloor
-	LDX #$00			;counter
-	LDY topscreen,x		;Load the number of times we will print a block
-printcolf
-	LDA #$00				;Load roof block
-	STA $1FCE,x				;Modified to allow for score screenspace -CJH
-	INX
-	CPX #$16
-	BNE printcolf
-	RTS
+    LDX #$0C            ;Depth
+dfnextrow
+    DEX    ;increase depth
+    CPX #$00            ;compare depth and elem to 11,21
+    BEQ dfdone            ;if both 0 then done
+    LDY #$FF            ;block element
+    STX depth           ;Store depth
+dfnextcol
+    INY
+    CLC
+    CPY #$16            ;compare y with 22 outtabounds
+    BEQ dfnextrow       ;if equal to 22 then set y=0, x++
+    
+    LDA bottomscreen,y  ;load the contents of the element of topscreen[y]
+    CMP depth           ;compare A with depth
+    BPL dfnextcol        ;if depth > A then try next element
+                ;this chunck is prep for mul22
+    TXA                 ;move x -> a
+    PHA                 ;push x to stack
+    TYA                 ;move y -> a
+    PHA                 ;push y to stack    
+    DEX
+    STX internum        ;store (depth-1) -> internum[0]
+    JSR mul22           ;calc the mul22 and store in internum[0]
+    PLA                 ;pop y off stack to a
+    TAY                 ;move a -> y
+    PLA                 ;pop x off stack to a
+    TAX                 ;move a-> x
+    
+    STY oldy   
+    LDA internum
+    ADC oldy
+    TAY
+    LDA #$00            ;else depth <= A then draw; store block in A
+    STA $1EF2,y;+((depth-1)*22)         ;print block at y; will need to
+    LDY oldy      
+    JMP dfnextcol       ;to next elem
+dfdone
+    RTS
 	
 	;begins at 1FE4, will later run from memory locations for score/level numbers.
 	;Need to write int to output conversion method before
@@ -581,6 +596,9 @@ topscreen	;22 bytes showing the depth of the roof for each spot
 bottomscreen	;22 bytes showing the depth of the floor for each spot
 	.BYTE $0B, $0a, $09, $08, $07, $06, $05, $04, $05, $06, $07
 	.BYTE $07, $06, $05, $04, $03, $04, $05, $06, $07, $08, $09
+bottomscreen1
+	.BYTE $01, $02, $03, $04, $03, $04, $05, $06, $05, $04, $03
+	.BYTE $03, $04, $05, $06, $07, $06, $05, $04, $03, $02, $01
 
 ycoord
     .WORD $
