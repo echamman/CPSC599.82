@@ -424,6 +424,7 @@ brendan2
     STX depth           ;Store depth
 brendan1
     INY
+    CLC
     CPY #$16            ;compare y with 22 outtabounds
     BEQ brendan2        ;if equal to 22 then set y=0, x++
     BNE next            ;if neq to 22 then print block at y
@@ -444,14 +445,15 @@ next
     PLA                 ;pop x off stack to a
     TAX                 ;move a-> x
     
-    STY oldy       
-    ;LDA internum
-    ;ADC oldy
-    ;TAY
+    STY oldy   
+ 
+    LDA internum
+    ADC oldy
+    TAY
     LDA #$00            ;else depth <= A then draw; store block in A
     STA $1E00,y;+((depth-1)*22)         ;print block at y; will need to
-    ;LDY oldy
-    BEQ brendan1        ;to next elem
+    LDY oldy      
+    JMP brendan1        ;to next elem
 done
     RTS
 
@@ -545,6 +547,9 @@ hold
 ;DATA
     org $1800        ;dec  6144
 
+oldy
+    .WORD $00
+    
 currTime
 	.BYTE #$00
 	
@@ -593,10 +598,7 @@ shipcoY					;Y position of ship
 	.BYTE #$00
 
 depth
-    .BYTE $00
-
-oldy
-    .BYTE $00
+    .WORD $00
   
 internum
     .BYTE $00,$00,$00
