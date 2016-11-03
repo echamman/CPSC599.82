@@ -302,7 +302,6 @@ drawship01
 	STA $1E43,x
 	LDA #$2A
 	STA $1E44,x
-
 	RTS
     ;memory the spaceship
     ;print it to screen.
@@ -401,7 +400,6 @@ drawship11
 	STA $1EF3,x
 	LDA #$2A
 	STA $1EF4,x
-
 	RTS
 
 drawroof
@@ -433,39 +431,51 @@ next
     LDA topscreen,y     ;load the contents of the element of topscreen[y]
     CMP depth           ;compare A with depth
     BMI brendan1        ;if depth > A then try next element
-    DEX                 ;x--
+                ;this chunck is prep for mul22
+    TXA                 ;move x -> a
+    PHA                 ;push x to stack
+    TYA                 ;move y -> a
+    PHA                 ;push y to stack    
+    DEX
     STX internum        ;store (depth-1) -> internum[0]
-    INX                 ;restore x++
-    JSR mul22
+    JSR mul22           ;calc the mul22 and store in internum[0]
+    PLA                 ;pop y off stack to a
+    TAY                 ;move a -> y
+    PLA                 ;pop x off stack to a
+    TAX                 ;move a-> x
+    
+    STY oldy       
+    ;LDA internum
+    ;ADC oldy
+    ;TAY
     LDA #$00            ;else depth <= A then draw; store block in A
     STA $1E00,y;+((depth-1)*22)         ;print block at y; will need to
+    ;LDY oldy
     BEQ brendan1        ;to next elem
 done
     RTS
-                        ;we have to learn how to push to stack to properly
-                        ;save x and y in previous subroutine
+
+               ;mul22 takes input in at internum[0],output at internum[0]
 mul22                   ;assume input is y. F(y) = y*22 = x1 + x2 + x3
     LDA internum
-    LDA #$00            ;x=0
+    LDX #$02            ;x=2
     ASL
     ASL
     ASL
     ASL
-    STA internum,x      ;internum[0] = x1
-    INX                 ;x=1
-    TYA
+    STA internum,x      ;internum[2] = x1
+    LDA internum
     ASL
     ASL
+    DEX
     STA internum,x      ;internum[1] = x2
-    TYA
+    LDA internum
     ASL
     ADC internum,x      ;x = x3 + x2
-    DEX                 ;X = 0
+    INX                 ;X = 0
     ADC internum,x      ;x = x + x1
-    STA internum,x
+    STA internum
     RTS
-
-
 
 
 drawfloor
@@ -516,12 +526,6 @@ printScoreLevel
 	LDA #$31		;1
 	STA $1FF8
 	
-	
-	
-	
-	
-	
-	
 	RTS
 
 waitTurn
@@ -535,6 +539,8 @@ hold
 	RTS
 
 ;=============================================================================
+;note: might be better to just store in data the multiples of 22...
+;mul22 works fine
 ;=============================================================================
 ;DATA
     org $1800        ;dec  6144
@@ -589,5 +595,8 @@ shipcoY					;Y position of ship
 depth
     .BYTE $00
 
+oldy
+    .BYTE $00
+  
 internum
-    .BYTE $00,$00
+    .BYTE $00,$00,$00
