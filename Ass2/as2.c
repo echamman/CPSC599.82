@@ -8,7 +8,10 @@ static void finish(int sig);
 static void draw();
 static void PlayerMove();
 static void BertieMove();
-static char *board[3][3];
+static char *board[3][3]= {
+    {" "," "," "},
+    {" "," "," "},
+    {" "," "," "}};
 static int row;
 static int col;
 static bool finished = false;
@@ -37,8 +40,6 @@ int main(int argc, char *argv[])
         finish(0);
     }
 
-    //init board
-
     //game code
     draw();
     while(!finished)
@@ -65,7 +66,7 @@ static void draw()
     mvprintw(7,3,"B");
     mvprintw(11,3,"C");
 
-    for(int i = 6; i < 18; i++)   // horizontal lines
+    for(int i = 6; i < 17; i++)   // horizontal lines
     {
         mvprintw(5,i,"-");
         mvprintw(9,i,"-");
@@ -77,6 +78,18 @@ static void draw()
     }
 
     //print from board to spots....
+
+    int k = 0;
+    for (int i = 3; i < 12; i+=4)
+    {
+        int l = 0;
+        for (int j = 7; j < 16; j+=4)
+        {
+            mvprintw(i,j,board[k][l]);
+            l++;
+        }
+        k++;
+    }
 }
 
 static void finish(int sig)
