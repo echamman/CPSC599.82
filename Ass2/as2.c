@@ -5,9 +5,12 @@
 #include "duktape.h"
 
 static void finish(int sig);
+static void draw();
 static void PlayerMove();
 static void BertieMove();
 static char *board[3][3];
+static int row;
+static int col;
 static bool finished = false;
 
 int main(int argc, char *argv[])
@@ -27,26 +30,53 @@ int main(int argc, char *argv[])
         printf("Failed to create a Duktape heap.\n");
         exit(1);
     }
-    if (duk_peval_file(ctx, "randy.js") != 0) {
+
+    if (duk_peval_file(ctx, argv[1]) != 0) {
         printf("Error: %s\n", duk_safe_to_string(ctx, -1));
         duk_destroy_heap(ctx);
         finish(0);
     }
 
-
+    //init board
 
     //game code
-
+    draw();
     while(!finished)
     {
+        draw();
         PlayerMove();
     }
-    int c = getch();     /* refresh, accept single keystroke of input */
 
 
     //game code
 
     finish(0);               /* we're done */
+}
+
+static void draw()
+{
+    int a = 196;
+    char c = "-";
+
+    mvprintw(0,7,"1");
+    mvprintw(0,11,"2");
+    mvprintw(0,15,"3");
+    mvprintw(3,3,"A");
+    mvprintw(7,3,"B");
+    mvprintw(11,3,"C");
+
+    for(int i = 6; i < 18; i++)   // horizontal lines
+    {
+        mvprintw(5,i,"-");
+        mvprintw(9,i,"-");
+    }
+    for(int i = 2; i < 13; i++)   // vertical lines
+    {
+        mvprintw(i,9,"|");
+        mvprintw(i,13,"|");
+    }
+
+    //print from board to spots....
 }
 
 static void finish(int sig)
