@@ -9,13 +9,13 @@ static void finish(int sig);
 static void draw();
 static void PlayerMove();
 static void BertieMove();
-static void stringToBoard(char *inString);
-static char *boardToString();
+static void stringToBoard();
+static void boardToString();
 static char *board[3][3]= {
     {" "," "," "},
     {" "," "," "},
     {" "," "," "}};
-static char *boardString[9];
+static char boardString[10] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\0'};
 static int row;
 static int col;
 static char *letter[1];
@@ -113,6 +113,8 @@ static void PlayerMove()
 {
     char *input[1];
 
+    mvprintw(15,0,"                                             ");  //clear screen
+    mvprintw(16,0,"                                             ");  //clear screen
     mvprintw(15,0,"Your move... letter? ");
     getstr(input);
     letter[0] = input[0];
@@ -160,35 +162,36 @@ static void BertieMove()
     mvprintw(15,0,"Bertie the Brain is thinking...");
     refresh();
     sleep(2);
-    *boardString = boardToString();              //Convert the board to a string to send
+    boardToString();              //Convert the board to a string to send
+    mvprintw(17,0,boardString);
+    refresh();
     duk_push_global_object(ctx);
     duk_get_prop_string(ctx, -1, "bertieMove");
     duk_push_string(ctx, boardString);              //send the board string to the AI
     if (duk_pcall(ctx, 1 /*nargs*/) != 0) {
                 printf("Error: %s\n", duk_safe_to_string(ctx, -1));
             } else {
-                printf("%s\n", duk_safe_to_string(ctx, -1));
+                //printf("%s\n", duk_safe_to_string(ctx, -1));
+                *boardString = duk_safe_to_string(ctx, -1); //Moves the response to the variable stringBoard
             }
     duk_pop(ctx);
-    stringToBoard(boardString);        //Convert the string back to a board
+    stringToBoard();        //Convert the string back to a board
 }
 
-static char * boardToString(){
-    char *ret[9];
+static void boardToString(){
 
     for(int x=0; x<3; x++){
         for(int y=0; y<3; y++){
-            ret[(3*x + y)] = board[x][y];
+            boardString[(3*x + y)] = board[x][y];
         }
     }
-    return ret;
 }
 
-static void stringToBoard(char *inString){
+static void stringToBoard(){
 
     for(int x=0; x<3; x++){
         for(int y=0; y<3; y++){
-            board[x][y] = inString[(3*x + y)];
+            board[x][y] = boardString[(3*x + y)];
         }
     }
 }
