@@ -10,7 +10,7 @@ static void draw();
 static void PlayerMove();
 static void BertieMove();
 static void stringToBoard(char *inString);
-static char * boardToString();
+static char *boardToString();
 static char *board[3][3]= {
     {" "," "," "},
     {" "," "," "},
@@ -164,7 +164,6 @@ static void BertieMove()
     duk_push_global_object(ctx);
     duk_get_prop_string(ctx, -1, "bertieMove");
     duk_push_string(ctx, boardString);              //send the board string to the AI
-
     if (duk_pcall(ctx, 1 /*nargs*/) != 0) {
                 printf("Error: %s\n", duk_safe_to_string(ctx, -1));
             } else {
@@ -174,12 +173,12 @@ static void BertieMove()
     stringToBoard(boardString);        //Convert the string back to a board
 }
 
-static char * boardToString(){
+static char *boardToString(){
     char *ret[9];
 
     for(int x=0; x<2; x++){
         for(int y=0; y<2; y++){
-            *ret[3*x + y] = board[x][y];
+            ret[3*x + y] = board[x][y];
         }
     }
     return *ret;

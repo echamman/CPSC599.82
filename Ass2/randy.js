@@ -8,5 +8,5 @@ function bertieMove(boardString){
 			complete = true;
 		}
 	}
-	return toReturn;
+	return boardString;
 }
