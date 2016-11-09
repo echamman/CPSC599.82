@@ -173,21 +173,21 @@ static void BertieMove()
     stringToBoard(boardString);        //Convert the string back to a board
 }
 
-static char *boardToString(){
+static char * boardToString(){
     char *ret[9];
 
-    for(int x=0; x<2; x++){
-        for(int y=0; y<2; y++){
-            ret[3*x + y] = board[x][y];
+    for(int x=0; x<3; x++){
+        for(int y=0; y<3; y++){
+            ret[(3*x + y)] = board[x][y];
         }
     }
-    return *ret;
+    return ret;
 }
 
 static void stringToBoard(char *inString){
 
-    for(int x=0; x<2; x++){
-        for(int y=0; y<2; y++){
+    for(int x=0; x<3; x++){
+        for(int y=0; y<3; y++){
             board[x][y] = inString[(3*x + y)];
         }
     }
