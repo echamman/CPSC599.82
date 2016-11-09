@@ -1,13 +1,12 @@
-function bertieMove(board){
+function bertieMove(boardString){
 	var complete = false;
 	while(!complete){
-		var row = Math.floor(Math.random() * 2);
-		var col = Math.floor(Math.random() * 2);
+		var spot = Math.floor(Math.random() * 9);
 
-		if(board[row][col] == ' '){
-			board[row][col] = 'x';
+		if(boardString.charAt(spot) == ' '){
+			var toReturn = boardString.substr(0, spot) + 'X' + boardString.substr(spot+1);
 			complete = true;
 		}
 	}
-	return board;
+	return toReturn;
 }

@@ -1,62 +1,57 @@
-function bertieMove(board){
+function bertieMove(boardString){
 	//First will play in the middle if available
-	if(board[1][1] == ' '){
-		board[1][1] = 'x';
-		return board;
-	}else if(board != nextToDouble(board)){		//If can't play in middle, plays next to a double to either win, or stop player
-		return nextToDouble(board)
+	if(boardString.charAt(4) == ' '){
+	 	return replaceChar(boardString, 4);
+	}else if(boardString != nextToDouble(boardString)){		//If can't play in middle, plays next to a double to either win, or stop player
+		return nextToDouble(boardString)
 	}else{
 		//play randomly, since this AI doesn't necessarily play to win
 		var complete = false;
 		while(!complete){
-			var row = Math.floor(Math.random() * 2);
-			var col = Math.floor(Math.random() * 2)
+			var spot = Math.floor(Math.random() * 9);
 
-			if(board[row][col] == ' '){
-				board[row][col] = 'x';
+			if(boardString.charAt(spot) == ' '){
+				var toReturn = boardString.substr(0, spot) + 'X' + boardString.substr(spot+1);
 				complete = true;
 			}
 		}
-		return board;
-	}
+		return toReturn;
 }
 
-function nextToDouble(board){
+function nextToDouble(boardString){
 	//Plays next to anyone about to win
 	for(x = 0; x < 3; x++){
 		for(y = 0; y < 3; y++){
 			//Should check all rows for doubles
-			if(board[x][y] == ' '){
-				if(board[x][(y+1) % 3] == board[x][(y+2) % 3] && board[x][(y+1) % 3] != ' ')
-					board[x][y] = 'x';
-					return board;
+			if(boardString.charAt(3*x + y) == ' '){
+				if(boardString.charAt(3*x + ((y+1) % 3)) == boardString.charAt(3*x + ((y+2) % 3)) && boardString.charAt(3*x + ((y+1) % 3)) != ' ')
+					return replaceChar(boardString, (3*x + y));
 			}
 			//Should check all columns for doubles
-			if(board[x][y] == ' '){
-				if(board[(x+1) % 3][y] == board[(x+2) % 3][y] && board[(x+1) % 3][y] != ' ')
-					board[x][y] = 'x';
-					return board;
+			if(boardString[x][y] == ' '){
+				if(boardString.charAt(((x+1) % 3)) + y == boardString.charAt(((x+2) % 3)) && boardString.charAt(((x+1) % 3)) != ' ')
+					return replaceChar(boardString, (3*x + y));
 			}
 		}
 	}
 	//Check diagonals, there will always be an item in the middle before this is called
-	if(board[0][0] == ' ' && board[1][1] == board[2][2] && board[1][1] != ' '){
-		board[0][0] = 'x'
-		return board;
+	if(boardString.charAt(0) == ' ' && boardString.charAt(4) == boardString.charAt(8) && boardString.charAt(4) != ' '){
+		return replaceChar(boardString, 0);
 	}
-	if(board[0][2] == ' ' && board[1][1] == board[2][0] && board[1][1] != ' '){
-		board[0][2] = 'x'
-		return board;
+	if(boardString.charAt(2) == ' ' && boardString.charAt(4) == boardString.charAt(6) && boardString.charAt(4) != ' '){
+		return replaceChar(boardString, 2);
 	}
-	if(board[2][0] == ' ' && board[1][1] == board[0][2] && board[1][1] != ' '){
-		board[2][0] = 'x'
-		return board;
+	if(boardString.charAt(6) == ' ' && boardString.charAt(4) == boardString.charAt(2) && boardString.charAt(4) != ' '){
+		return replaceChar(boardString, 6);
 	}
-	if(board[2][2] == ' ' && board[1][1] == board[0][0] && board[1][1] != ' '){
-		board[2][2] = 'x'
-		return board;
+	if(boardString.charAt(8) == ' ' && boardString.charAt(4) == boardString.charAt(0) && boardString.charAt(4) != ' '){
+		return replaceChar(boardString, 8);
 	}
 
-	//Return the final unchanged board if there are no doubles on the board
-	return board;
+	//Return the final unchanged boardString if there are no doubles on the boardString
+	return boardString;
+}
+
+function replaceChar(inString, index){
+	return inString.substr(0, index) + 'X' + inString.substr(index+1);
 }
