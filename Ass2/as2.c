@@ -11,10 +11,10 @@ static void PlayerMove();
 static void BertieMove();
 static void stringToBoard();
 static void boardToString();
-static char *board[3][3]= {
-    {" "," "," "},
-    {" "," "," "},
-    {" "," "," "}};
+static char board[3][3]= {
+    {' ',' ',' '},
+    {' ',' ',' '},
+    {' ',' ',' '}};
 static char boardString[10] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\0'};
 static int row;
 static int col;
@@ -175,6 +175,8 @@ static void BertieMove()
                 *boardString = duk_safe_to_string(ctx, -1); //Moves the response to the variable stringBoard
             }
     duk_pop(ctx);
+    mvprintw(17,0,boardString);
+    refresh();
     stringToBoard();        //Convert the string back to a board
 }
 
