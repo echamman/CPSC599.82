@@ -14,6 +14,8 @@ static char *board[3][3]= {
     {" "," "," "}};
 static int row;
 static int col;
+static char letter;
+static char number;
 static bool finished = false;
 
 int main(int argc, char *argv[])
@@ -24,7 +26,7 @@ int main(int argc, char *argv[])
     (void) initscr();      /* initialize the curses library */
     keypad(stdscr, TRUE);  /* enable keyboard mapping */
     (void) nonl();         /* tell curses not to do NL->CR/NL on output */
-    (void) cbreak();       /* take input chars one at a time, no wait for \n */
+    //(void) cbreak();       /* take input chars one at a time, no wait for \n */
     (void) echo();         /* echo input - in color */
 
     duk_context *ctx = NULL; //init duk
@@ -34,7 +36,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    if (duk_peval_file(ctx, argv[1]) != 0) {
+    if (duk_peval_file(ctx, "randy.js"/*argv[1]*/) != 0) {
         printf("Error: %s\n", duk_safe_to_string(ctx, -1));
         duk_destroy_heap(ctx);
         finish(0);
@@ -103,11 +105,35 @@ static void finish(int sig)
 
 static void PlayerMove()
 {
-    int c = getch();
+    char input[1];
+
+    mvprintw(15,0,"Your move... letter? ");
+    getstr(input);
+    letter = input[0];
+    mvprintw(15,21,input);
+
+    mvprintw(16,0,"Your move... number? ");
+    getstr(input);
+    number = input[0];
+    mvprintw(16,21,input);
+
+    if((strcmp(letter, "a") != 0 && strcmp(letter, "b") != 0 && strcmp(letter, "c") != 0) \
+    || (strcmp(number, "1") != 0 && strcmp(number, "2") != 0 && strcmp(number, "3") != 0))
+    {
+        mvprintw(15,0,"                      ");  //clear screen
+        mvprintw(16,0,"                      ");  //clear screen
+        mvprintw(15,0,"Invalid Move!");
+        refresh();
+        sleep(2);
+        mvprintw(15,0,"                      ");  //clear screen
+        mvprintw(16,0,"                      ");  //clear screen
+        PlayerMove();
+    }
 }
 
 static void BertieMove()
 {
-
-
+    mvprintw(15,0,"                      ");  //clear screen
+    mvprintw(16,0,"                      ");  //clear screen
+//Bertie the Brain si thinking...
 }
