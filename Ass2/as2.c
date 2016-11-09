@@ -4,6 +4,7 @@
 #include <string.h>
 #include "duktape.h"
 
+static void errorMove();
 static void finish(int sig);
 static void draw();
 static void PlayerMove();
@@ -14,9 +15,10 @@ static char *board[3][3]= {
     {" "," "," "}};
 static int row;
 static int col;
-static char letter;
-static char number;
+static char *letter[1];
+static char *number[1];
 static bool finished = false;
+static duk_context *ctx = NULL; //init duk
 
 int main(int argc, char *argv[])
 {
@@ -29,7 +31,6 @@ int main(int argc, char *argv[])
     //(void) cbreak();       /* take input chars one at a time, no wait for \n */
     (void) echo();         /* echo input - in color */
 
-    duk_context *ctx = NULL; //init duk
     ctx = duk_create_heap_default();
     if (!ctx) {
         printf("Failed to create a Duktape heap.\n");
@@ -46,8 +47,10 @@ int main(int argc, char *argv[])
     draw();
     while(!finished)
     {
-        draw();
         PlayerMove();
+        draw();
+        BertieMove();
+        draw();
     }
 
 
@@ -105,35 +108,63 @@ static void finish(int sig)
 
 static void PlayerMove()
 {
-    char input[1];
+    char *input[1];
 
     mvprintw(15,0,"Your move... letter? ");
     getstr(input);
-    letter = input[0];
+    letter[0] = input[0];
     mvprintw(15,21,input);
 
     mvprintw(16,0,"Your move... number? ");
     getstr(input);
-    number = input[0];
+    number[0] = input[0];
     mvprintw(16,21,input);
 
     if((strcmp(letter, "a") != 0 && strcmp(letter, "b") != 0 && strcmp(letter, "c") != 0) \
     || (strcmp(number, "1") != 0 && strcmp(number, "2") != 0 && strcmp(number, "3") != 0))
     {
-        mvprintw(15,0,"                      ");  //clear screen
-        mvprintw(16,0,"                      ");  //clear screen
-        mvprintw(15,0,"Invalid Move!");
-        refresh();
-        sleep(2);
-        mvprintw(15,0,"                      ");  //clear screen
-        mvprintw(16,0,"                      ");  //clear screen
-        PlayerMove();
+        errorMove();
     }
+
+    //update the 3x3
+    int x = letter[0] - 'a';
+    int y = number[0] - '1';
+
+    if(strcmp(board[x][y]," ") == 0)
+        board[x][y] = "O";
+    else
+        errorMove();
+
+
+}
+
+static void errorMove()
+{
+    mvprintw(15,0,"                      ");  //clear screen
+    mvprintw(16,0,"                      ");  //clear screen
+    mvprintw(15,0,"Invalid Move!");
+    refresh();
+    sleep(2);
+    mvprintw(15,0,"                      ");  //clear screen
+    mvprintw(16,0,"                      ");  //clear screen
+    PlayerMove();
 }
 
 static void BertieMove()
 {
     mvprintw(15,0,"                      ");  //clear screen
     mvprintw(16,0,"                      ");  //clear screen
-//Bertie the Brain si thinking...
+    mvprintw(15,0,"Bertie the Brain is thinking...");
+    refresh();
+    sleep(2);
+    duk_push_global_object(ctx);
+    duk_get_prop_string(ctx, -1, "bertieMove");
+    duk_push_array(ctx, board);
+
+    if (duk_pcall(ctx, 1 /*nargs*/) != 0) {
+                printf("Error: %s\n", duk_safe_to_string(ctx, -1));
+            } else {
+                printf("%s\n", duk_safe_to_string(ctx, -1));
+            }
+    duk_pop(ctx);
 }
