@@ -18,8 +18,8 @@ static char board[3][3]= {
 static char boardString[10] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\0'};
 static int row;
 static int col;
-static char *letter[1];
-static char *number[1];
+static char letter;
+static char number;
 static bool finished = false;
 static duk_context *ctx = NULL; //init duk
 
@@ -93,7 +93,7 @@ static void draw()
         int l = 0;
         for (int j = 7; j < 16; j+=4)
         {
-            mvprintw(i,j,board[k][l]);
+            mvaddch(i,j,board[k][l]);
             l++;
         }
         k++;
@@ -117,28 +117,27 @@ static void PlayerMove()
     mvprintw(16,0,"                                             ");  //clear screen
     mvprintw(15,0,"Your move... letter? ");
     getstr(input);
-    letter[0] = input[0];
+    letter = input[0];
     mvprintw(15,21,input);
 
     mvprintw(16,0,"Your move... number? ");
     getstr(input);
-    number[0] = input[0];
+    number = input[0];
     mvprintw(16,21,input);
 
-    if((strcmp(letter, "a") != 0 && strcmp(letter, "b") != 0 && strcmp(letter, "c") != 0) \
-    || (strcmp(number, "1") != 0 && strcmp(number, "2") != 0 && strcmp(number, "3") != 0))
+    if((letter != 'a' && letter != 'b' && letter != 'c') || (number != '1' && number != '2' && number != '3'))
     {
         errorMove();
     }
 
     //update the 3x3
-    int x = letter[0] - 'a';
-    int y = number[0] - '1';
+    int x = letter - 97;
+    int y = number - 49;
 
-    if(strcmp(board[x][y]," ") == 0)
-        board[x][y] = "O";
+    if(board[x][y] == ' ')
+        board[x][y] = 'O';
     else
-        errorMove();
+       errorMove();
 
 
 }
@@ -172,10 +171,9 @@ static void BertieMove()
                 printf("Error: %s\n", duk_safe_to_string(ctx, -1));
             } else {
                 //printf("%s\n", duk_safe_to_string(ctx, -1));
-                *boardString = duk_safe_to_string(ctx, -1); //Moves the response to the variable stringBoard
+                strncpy(boardString, duk_safe_to_string(ctx, -1), 10); //Moves the response to the variable stringBoard
             }
     duk_pop(ctx);
-    mvprintw(17,0,boardString);
     refresh();
     stringToBoard();        //Convert the string back to a board
 }
