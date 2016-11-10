@@ -54,8 +54,10 @@ int main(int argc, char *argv[])
         PlayerMove();
         draw();
         finished = gameOver();
-        BertieMove();
-        draw();
+        if(!finished){
+            BertieMove();
+            draw();
+        }
         finished = gameOver();
     }
 
@@ -86,7 +88,16 @@ static bool gameOver(){
     if(board[0][2] == board[1][1] && board[1][1] == board[2][0] && board[0][2] != ' '){
         return true;
     }
-    return false;
+
+    //Check tie
+    for(int i=0; i<3; i++){
+        for(int j=0; j<3; j++){
+            if(board[i][j] == ' '){
+                return false;
+            }
+        }
+    }
+    return true;
 }
 static void draw()
 {
