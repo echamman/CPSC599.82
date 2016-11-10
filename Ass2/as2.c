@@ -1,13 +1,11 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <curses.h>
 #include <signal.h>
 #include <string.h>
-#include "duktape.h"
-
+#include <locale.h>
 #include <libintl.h>
-#define _(String) gettext (String)
-#define gettext_noop(String) String
-#define N_(String) gettext_noop (String)
+#include "duktape.h"
 
 static void errorMove();
 static void finish(int sig);
@@ -31,7 +29,11 @@ static duk_context *ctx = NULL; //init duk
 static char winner[10];
 
 int main(int argc, char *argv[])
-{
+{	//https://www.gnu.org/software/gettext/FAQ.html#integrating_undefined
+	setlocale (LC_ALL, "");
+	textdomain ("as2");
+	bindtextdomain ("as2", "locale");
+
     if(argc != 2){
         printf(gettext("You need to use randy.js or ty.js for your AI.\n"));
         exit(0);
@@ -191,12 +193,11 @@ static void PlayerMove()
     getstr(input);
     letter = input[0];
     letter = putchar(tolower(letter));
-    mvprintw(15,21,input);
 
     mvprintw(16,0,gettext("Your move... number? "));
     getstr(input);
+    mvprintw(16,0,"                   							");  //clear screen
     number = input[0];
-    mvprintw(16,21,input);
 
     if((letter != 'a' && letter != 'b' && letter != 'c') || (number != '1' && number != '2' && number != '3'))
     {

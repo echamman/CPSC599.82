@@ -1,45 +1,44 @@
-# French translations for Ass package
-# Traductions françaises du paquet Ass.
-# Copyright (C) 2016 THE Ass'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the Ass package.
-# bzpetras <bzpetras@zone07-wd.cs.ucalgary.ca>, 2016.
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
+#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Ass 2\n"
+"Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-11-09 20:12-0700\n"
-"PO-Revision-Date: 2016-11-09 20:12-0700\n"
-"Last-Translator: bzpetras <bzpetras@zone07-wd.cs.ucalgary.ca>\n"
-"Language-Team: French\n"
-"Language: fr\n"
+"POT-Creation-Date: 2016-11-10 11:45-0700\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: as2.c:36 as2.c:40
+#: as2.c:38 as2.c:42
 #, c-format
 msgid "You need to use randy.js or ty.js for your AI.\n"
-msgstr ""
+msgstr "Vous devez utiliser randy.js ou ty.js pour votre IA.\n"
 
-#: as2.c:79
+#: as2.c:81
 #, c-format
 msgid "Game over, %s wins"
-msgstr ""
+msgstr "Fin du jeu,%s gagne"
 
-#: as2.c:94 as2.c:105 as2.c:115 as2.c:122
+#: as2.c:96 as2.c:107 as2.c:117 as2.c:124
 msgid "PLAYER"
-msgstr ""
+msgstr "JOUEUR"
 
-#: as2.c:134
+#: as2.c:136
 msgid "NO ONE"
-msgstr ""
+msgstr "PERSONNE"
 
-#: as2.c:190
+#: as2.c:192
 msgid "Your move... letter? "
-msgstr ""
+msgstr "Votre tour... lettre? "
 
-#: as2.c:196
+#: as2.c:198
 msgid "Your move... number? "
-msgstr ""
+msgstr "Votre tour... nombre? "
