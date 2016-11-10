@@ -51,43 +51,46 @@ int main(int argc, char *argv[])
     //(void) cbreak();       /* take input chars one at a time, no wait for \n */
     (void) echo();         /* echo input - in color */
 
-    ctx = duk_create_heap_default();
+    ctx = duk_create_heap_default();	//heap to talk to js
     if (!ctx) 
 		exit(1);
     
 
-    if (duk_peval_file(ctx, argv[1]) != 0) {
+    if (duk_peval_file(ctx, argv[1]) != 0) {		//if fail to init quit
         duk_destroy_heap(ctx);
         finish(0);
     }
 
     //game code
-    draw();
+    draw();							//show game board
     while(!finished)
     {
-        PlayerMove();
+        PlayerMove();				
         draw();
-        finished = gameOver();
-        if(!finished){
+        finished = gameOver();		//check win/tie conditions
+        if(!finished){				
             BertieMove();
             draw();
         }
-        finished = gameOver();
+        finished = gameOver();		//return finished bool
     }
 
     draw();
+    //game code
+    
+    //Finished Game
     mvprintw(15,0,"                                             ");  //clear screen
     mvprintw(16,0,"                                             ");  //clear screen
     mvprintw(15, 0, gettext("Game over, %s wins"), winner);
     refresh();
     sleep(5);
-    //game code
+    
 
     finish(0);               /* we're done */
 }
 
 static bool gameOver(){
-    //Checking for horizontal lines
+    //Checking for horizontal 3 in a row
     for(int x=0; x < 3; x++){
         if(board[x][0] == board[x][1] && board[x][0] == board[x][2] && board[x][0] != ' '){
             if(board[x][0] == 'X')
@@ -98,7 +101,7 @@ static bool gameOver(){
         }
     }
 
-    //Checking for vertical lines
+    //Checking for vertical 3 in a col
     for(int y=0; y < 3; y++){
         if(board[0][y] == board[1][y] && board[0][y] == board[2][y] && board[0][y] != ' '){
             if(board[0][y] == 'X')
@@ -109,7 +112,7 @@ static bool gameOver(){
         }
     }
 
-    //Checking for diagonals
+    //Checking for 3 in a diagonal
     if(board[0][0] == board[1][1] && board[1][1] == board[2][2] && board[0][0] != ' '){
         if(board[0][0] == 'X')
             strcpy(winner, "BERTIE");
@@ -136,11 +139,14 @@ static bool gameOver(){
     strcpy(winner, gettext("NO ONE"));
     return true;
 }
+
+//Draws the game board from board[][]
 static void draw()
 {
     int a = 196;
     char c = "-";
 
+	//axis labels
     mvprintw(0,7,"1");
     mvprintw(0,11,"2");
     mvprintw(0,15,"3");
@@ -148,6 +154,8 @@ static void draw()
     mvprintw(7,3,"B");
     mvprintw(11,3,"C");
 
+
+	//Board grid
     for(int i = 6; i < 17; i++)   // horizontal lines
     {
         mvprintw(5,i,"-");
@@ -159,7 +167,7 @@ static void draw()
         mvprintw(i,13,"|");
     }
 
-    //print from board to spots....
+    //print from board[][] to grid location
 
     int k = 0;
     for (int i = 3; i < 12; i+=4)
@@ -176,17 +184,15 @@ static void draw()
 
 static void finish(int sig)
 {
-    endwin();
-
-    /* do your non-curses wrapup here */
-
-    exit(0);
+    endwin(); //end curses
+    exit(0);  //end program
 }
 
 static void PlayerMove()
 {
     char *input[1];
-
+	
+	//Prompt for input letter
     mvprintw(15,0,"                                             ");  //clear screen
     mvprintw(16,0,"                                             ");  //clear screen
     mvprintw(15,0,gettext("Your move... letter? "));
@@ -194,18 +200,20 @@ static void PlayerMove()
     letter = input[0];
     letter = putchar(tolower(letter));
 
+	//Prompt for input number
     mvprintw(16,0,gettext("Your move... number? "));
     getstr(input);
     mvprintw(16,0,"                   							");  //clear screen
     number = input[0];
 
+	//logic to verify user input
     if((letter != 'a' && letter != 'b' && letter != 'c') || (number != '1' && number != '2' && number != '3'))
     {
         errorMove();
         return;
     }
 
-    //update the 3x3
+    //update the 3x3 board
     int x = letter - 97;
     int y = number - 49;
 
@@ -217,6 +225,7 @@ static void PlayerMove()
    }
 }
 
+//print invalid move
 static void errorMove()
 {
     mvprintw(15,0,"                      ");  //clear screen
@@ -229,6 +238,7 @@ static void errorMove()
     PlayerMove();
 }
 
+//AI move
 static void BertieMove()
 {
     mvprintw(15,0,"                      ");  //clear screen
@@ -236,10 +246,10 @@ static void BertieMove()
     mvprintw(15,0,gettext(("Bertie the Brain is thinking...")));
     refresh();
     sleep(2);
-    boardToString();              //Convert the board to a string to send
+    boardToString();              //Convert the board to a string to send to js
     duk_push_global_object(ctx);
     duk_get_prop_string(ctx, -1, "bertieMove");
-    duk_push_string(ctx, boardString);              //send the board string to the AI
+    duk_push_string(ctx, boardString);              //send the board string to the AI js
     
     if (duk_pcall(ctx, 1 /*nargs*/) != 0) 
 		printf("Error: %s\n", duk_safe_to_string(ctx, -1));     
@@ -250,6 +260,8 @@ static void BertieMove()
     stringToBoard();        //Convert the string back to a board
 }
 
+//helper functions to get and retrieve 
+//a string version of the game board
 static void boardToString(){
 
     for(int x=0; x<3; x++){
