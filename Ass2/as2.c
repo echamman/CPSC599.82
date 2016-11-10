@@ -11,6 +11,7 @@ static void PlayerMove();
 static void BertieMove();
 static void stringToBoard();
 static void boardToString();
+static bool gameOver();
 static char board[3][3]= {
     {' ',' ',' '},
     {' ',' ',' '},
@@ -52,16 +53,41 @@ int main(int argc, char *argv[])
     {
         PlayerMove();
         draw();
+        finished = gameOver();
         BertieMove();
         draw();
+        finished = gameOver();
     }
-
 
     //game code
 
     finish(0);               /* we're done */
 }
 
+static bool gameOver(){
+    //Checking for horizontal lines
+    for(int x=0; x < 3; x++){
+        if(board[x][0] == board[x][1] && board[x][1] == board[x][2] && board[x][0] != ' '){
+            return true;
+        }
+    }
+
+    //Checking for vertical lines
+    for(int y=0; y < 3; y++){
+        if(board[0][y] == board[1][y] && board[1][y] == board[2][y] && board[y][0] != ' '){
+            return true;
+        }
+    }
+
+    //Checking for diagonals
+    if(board[0][0] == board[1][1] && board[1][1] == board[2][2] && board[0][0] != ' '){
+        return true;
+    }
+    if(board[0][2] == board[1][1] && board[1][1] == board[2][0] && board[0][2] != ' '){
+        return true;
+    }
+    return false;
+}
 static void draw()
 {
     int a = 196;
@@ -162,8 +188,6 @@ static void BertieMove()
     refresh();
     sleep(2);
     boardToString();              //Convert the board to a string to send
-    mvprintw(17,0,boardString);
-    refresh();
     duk_push_global_object(ctx);
     duk_get_prop_string(ctx, -1, "bertieMove");
     duk_push_string(ctx, boardString);              //send the board string to the AI
@@ -174,7 +198,6 @@ static void BertieMove()
                 strncpy(boardString, duk_safe_to_string(ctx, -1), 10); //Moves the response to the variable stringBoard
             }
     duk_pop(ctx);
-    refresh();
     stringToBoard();        //Convert the string back to a board
 }
 
