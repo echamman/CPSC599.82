@@ -187,6 +187,7 @@ static void PlayerMove()
     mvprintw(15,0,"Your move... letter? ");
     getstr(input);
     letter = input[0];
+    letter = putchar(tolower(letter));
     mvprintw(15,21,input);
 
     mvprintw(16,0,"Your move... number? ");
