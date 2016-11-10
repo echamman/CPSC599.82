@@ -197,6 +197,7 @@ static void PlayerMove()
     if((letter != 'a' && letter != 'b' && letter != 'c') || (number != '1' && number != '2' && number != '3'))
     {
         errorMove();
+        return;
     }
 
     //update the 3x3
@@ -205,10 +206,10 @@ static void PlayerMove()
 
     if(board[x][y] == ' ')
         board[x][y] = 'O';
-    else
+    else{
        errorMove();
-
-
+       return;
+   }
 }
 
 static void errorMove()
