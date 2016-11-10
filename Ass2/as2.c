@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    if (duk_peval_file(ctx, "randy.js"/*argv[1]*/) != 0) {
+    if (duk_peval_file(ctx, "ty.js"/*argv[1]*/) != 0) {
         printf("Error: %s\n", duk_safe_to_string(ctx, -1));
         duk_destroy_heap(ctx);
         finish(0);

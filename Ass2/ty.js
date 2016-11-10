@@ -16,6 +16,7 @@ function bertieMove(boardString){
 			}
 		}
 		return toReturn;
+    }
 }
 
 function nextToDouble(boardString){
