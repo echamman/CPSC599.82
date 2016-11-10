@@ -27,6 +27,14 @@ static char winner[10];
 
 int main(int argc, char *argv[])
 {
+    if(argc != 2){
+        printf("You need to use randy.js or ty.js for your AI.\r\n");
+        exit(0);
+    }
+    if(strcmp(argv[1], "randy.js") != 0 && strcmp(argv[1], "ty.js") != 0){
+        printf("You need to use randy.js or ty.js for your AI.\r\n");
+        exit(0);
+    }
     /* initialize your non-curses data structures here */
 
     (void) signal(SIGINT, finish);      /* arrange interrupts to terminate */
@@ -44,7 +52,6 @@ int main(int argc, char *argv[])
 
     if (duk_peval_file(ctx, argv[1]) != 0) {
         printf("Error: %s\n", duk_safe_to_string(ctx, -1));
-        printf("You need to use randy.js or ty.js for your AI.\n");
         duk_destroy_heap(ctx);
         finish(0);
     }
