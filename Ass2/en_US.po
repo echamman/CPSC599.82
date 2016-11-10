@@ -1,0 +1,44 @@
+# English translations for 1.0 package.
+# Copyright (C) 2016 THE 1.0'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the 1.0 package.
+# bzpetras <bzpetras@zone07-wd.cs.ucalgary.ca>, 2016.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: 1.0\n"
+"Report-Msgid-Bugs-To: None\n"
+"POT-Creation-Date: 2016-11-09 19:42-0700\n"
+"PO-Revision-Date: 2016-11-09 19:47-0700\n"
+"Last-Translator: bzpetras <bzpetras@zone07-wd.cs.ucalgary.ca>\n"
+"Language-Team: English\n"
+"Language: en_US\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"MIME-Version: 1.0\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: as2.c:36 as2.c:40
+#, c-format
+msgid "You need to use randy.js or ty.js for your AI.\n"
+msgstr "You need to use randy.js or ty.js for your AI.\n"
+
+#: as2.c:79
+#, c-format
+msgid "Game over, %s wins"
+msgstr "Game over, %s wins"
+
+#: as2.c:89
+msgid "PLAYER"
+msgstr "PLAYER"
+
+#: as2.c:135
+msgid "NO ONE"
+msgstr "NO ONE"
+
+#: as2.c:191
+msgid "Your move... letter? "
+msgstr "Your move... letter? "
+
+#: as2.c:197
+msgid "Your move... number? "
+msgstr "Your move... number? "

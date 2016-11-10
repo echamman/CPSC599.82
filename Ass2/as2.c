@@ -4,6 +4,11 @@
 #include <string.h>
 #include "duktape.h"
 
+#include <libintl.h>
+#define _(String) gettext (String)
+#define gettext_noop(String) String
+#define N_(String) gettext_noop (String)
+
 static void errorMove();
 static void finish(int sig);
 static void draw();
@@ -28,11 +33,11 @@ static char winner[10];
 int main(int argc, char *argv[])
 {
     if(argc != 2){
-        printf("You need to use randy.js or ty.js for your AI.\r\n");
+        printf(gettext("You need to use randy.js or ty.js for your AI.\n"));
         exit(0);
     }
     if(strcmp(argv[1], "randy.js") != 0 && strcmp(argv[1], "ty.js") != 0){
-        printf("You need to use randy.js or ty.js for your AI.\r\n");
+        printf(gettext("You need to use randy.js or ty.js for your AI.\n"));
         exit(0);
     }
     /* initialize your non-curses data structures here */
@@ -45,13 +50,11 @@ int main(int argc, char *argv[])
     (void) echo();         /* echo input - in color */
 
     ctx = duk_create_heap_default();
-    if (!ctx) {
-        printf("Failed to create a Duktape heap.\n");
-        exit(1);
-    }
+    if (!ctx) 
+		exit(1);
+    
 
     if (duk_peval_file(ctx, argv[1]) != 0) {
-        printf("Error: %s\n", duk_safe_to_string(ctx, -1));
         duk_destroy_heap(ctx);
         finish(0);
     }
@@ -73,7 +76,7 @@ int main(int argc, char *argv[])
     draw();
     mvprintw(15,0,"                                             ");  //clear screen
     mvprintw(16,0,"                                             ");  //clear screen
-    mvprintw(15, 0, "Game over, %s wins", winner);
+    mvprintw(15, 0, gettext("Game over, %s wins"), winner);
     refresh();
     sleep(5);
     //game code
@@ -83,12 +86,13 @@ int main(int argc, char *argv[])
 
 static bool gameOver(){
     //Checking for horizontal lines
+    char player[] = gettext("PLAYER");
     for(int x=0; x < 3; x++){
         if(board[x][0] == board[x][1] && board[x][0] == board[x][2] && board[x][0] != ' '){
             if(board[x][0] == 'X')
                 strcpy(winner, "BERTIE");
             else
-                strcpy(winner, "PLAYER");
+                strcpy(winner, player);
             return true;
         }
     }
@@ -99,7 +103,7 @@ static bool gameOver(){
             if(board[0][y] == 'X')
                 strcpy(winner, "BERTIE");
             else
-                strcpy(winner, "PLAYER");
+                strcpy(winner, player);
             return true;
         }
     }
@@ -109,14 +113,14 @@ static bool gameOver(){
         if(board[0][0] == 'X')
             strcpy(winner, "BERTIE");
         else
-            strcpy(winner, "PLAYER");
+            strcpy(winner, player);
         return true;
     }
     if(board[0][2] == board[1][1] && board[1][1] == board[2][0] && board[0][2] != ' '){
         if(board[0][2] == 'X')
             strcpy(winner, "BERTIE");
         else
-            strcpy(winner, "PLAYER");
+            strcpy(winner, player);
         return true;
     }
 
@@ -128,7 +132,7 @@ static bool gameOver(){
             }
         }
     }
-    strcpy(winner, "NO ONE");
+    strcpy(winner, gettext("NO ONE"));
     return true;
 }
 static void draw()
@@ -184,13 +188,13 @@ static void PlayerMove()
 
     mvprintw(15,0,"                                             ");  //clear screen
     mvprintw(16,0,"                                             ");  //clear screen
-    mvprintw(15,0,"Your move... letter? ");
+    mvprintw(15,0,gettext("Your move... letter? "));
     getstr(input);
     letter = input[0];
     letter = putchar(tolower(letter));
     mvprintw(15,21,input);
 
-    mvprintw(16,0,"Your move... number? ");
+    mvprintw(16,0,gettext("Your move... number? "));
     getstr(input);
     number = input[0];
     mvprintw(16,21,input);
@@ -217,7 +221,7 @@ static void errorMove()
 {
     mvprintw(15,0,"                      ");  //clear screen
     mvprintw(16,0,"                      ");  //clear screen
-    mvprintw(15,0,"Invalid Move!");
+    mvprintw(15,0,gettext(("Invalid Move!"));
     refresh();
     sleep(2);
     mvprintw(15,0,"                      ");  //clear screen
@@ -229,19 +233,19 @@ static void BertieMove()
 {
     mvprintw(15,0,"                      ");  //clear screen
     mvprintw(16,0,"                      ");  //clear screen
-    mvprintw(15,0,"Bertie the Brain is thinking...");
+    mvprintw(15,0,gettext(("Bertie the Brain is thinking..."));
     refresh();
     sleep(2);
     boardToString();              //Convert the board to a string to send
     duk_push_global_object(ctx);
     duk_get_prop_string(ctx, -1, "bertieMove");
     duk_push_string(ctx, boardString);              //send the board string to the AI
-    if (duk_pcall(ctx, 1 /*nargs*/) != 0) {
-                printf("Error: %s\n", duk_safe_to_string(ctx, -1));
-            } else {
-                //printf("%s\n", duk_safe_to_string(ctx, -1));
-                strncpy(boardString, duk_safe_to_string(ctx, -1), 10); //Moves the response to the variable stringBoard
-            }
+    
+    if (duk_pcall(ctx, 1 /*nargs*/) != 0) 
+		printf("Error: %s\n", duk_safe_to_string(ctx, -1));     
+    else 
+		strncpy(boardString, duk_safe_to_string(ctx, -1), 10); //Moves the response to the variable stringBoard
+
     duk_pop(ctx);
     stringToBoard();        //Convert the string back to a board
 }
