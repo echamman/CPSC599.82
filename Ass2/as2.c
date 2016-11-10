@@ -86,13 +86,12 @@ int main(int argc, char *argv[])
 
 static bool gameOver(){
     //Checking for horizontal lines
-    char player[] = gettext("PLAYER");
     for(int x=0; x < 3; x++){
         if(board[x][0] == board[x][1] && board[x][0] == board[x][2] && board[x][0] != ' '){
             if(board[x][0] == 'X')
                 strcpy(winner, "BERTIE");
             else
-                strcpy(winner, player);
+                strcpy(winner, gettext("PLAYER"));
             return true;
         }
     }
@@ -103,7 +102,7 @@ static bool gameOver(){
             if(board[0][y] == 'X')
                 strcpy(winner, "BERTIE");
             else
-                strcpy(winner, player);
+                strcpy(winner, gettext("PLAYER"));
             return true;
         }
     }
@@ -113,14 +112,14 @@ static bool gameOver(){
         if(board[0][0] == 'X')
             strcpy(winner, "BERTIE");
         else
-            strcpy(winner, player);
+            strcpy(winner, gettext("PLAYER"));
         return true;
     }
     if(board[0][2] == board[1][1] && board[1][1] == board[2][0] && board[0][2] != ' '){
         if(board[0][2] == 'X')
             strcpy(winner, "BERTIE");
         else
-            strcpy(winner, player);
+            strcpy(winner, gettext("PLAYER"));
         return true;
     }
 
@@ -221,7 +220,7 @@ static void errorMove()
 {
     mvprintw(15,0,"                      ");  //clear screen
     mvprintw(16,0,"                      ");  //clear screen
-    mvprintw(15,0,gettext(("Invalid Move!"));
+    mvprintw(15,0,gettext(("Invalid Move!")));
     refresh();
     sleep(2);
     mvprintw(15,0,"                      ");  //clear screen
@@ -233,7 +232,7 @@ static void BertieMove()
 {
     mvprintw(15,0,"                      ");  //clear screen
     mvprintw(16,0,"                      ");  //clear screen
-    mvprintw(15,0,gettext(("Bertie the Brain is thinking..."));
+    mvprintw(15,0,gettext(("Bertie the Brain is thinking...")));
     refresh();
     sleep(2);
     boardToString();              //Convert the board to a string to send
