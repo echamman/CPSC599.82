@@ -16,11 +16,7 @@ function bertieMove(boardString){
 			}
 		}
 		return toReturn;
-<<<<<<< HEAD
-    }
-=======
 	}
->>>>>>> 0fa33614708d2b7e4e589174e8acd05e1c72393f
 }
 
 function nextToDouble(boardString){

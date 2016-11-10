@@ -50,11 +50,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-<<<<<<< HEAD
-    if (duk_peval_file(ctx, "ty.js"/*argv[1]*/) != 0) {
-=======
     if (duk_peval_file(ctx, argv[1]) != 0) {
->>>>>>> 0fa33614708d2b7e4e589174e8acd05e1c72393f
         printf("Error: %s\n", duk_safe_to_string(ctx, -1));
         duk_destroy_heap(ctx);
         finish(0);
