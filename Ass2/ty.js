@@ -16,6 +16,7 @@ function bertieMove(boardString){
 			}
 		}
 		return toReturn;
+	}
 }
 
 function nextToDouble(boardString){
@@ -28,8 +29,8 @@ function nextToDouble(boardString){
 					return replaceChar(boardString, (3*x + y));
 			}
 			//Should check all columns for doubles
-			if(boardString[x][y] == ' '){
-				if(boardString.charAt(((x+1) % 3)) + y == boardString.charAt(((x+2) % 3)) && boardString.charAt(((x+1) % 3)) != ' ')
+			if(boardString.charAt(3*x + y) == ' '){
+				if(boardString.charAt((3*((x+1) % 3)) + y) == boardString.charAt((3*((x+2) % 3)) + y) && boardString.charAt((3*((x+1) % 3)) + y) != ' ')
 					return replaceChar(boardString, (3*x + y));
 			}
 		}
