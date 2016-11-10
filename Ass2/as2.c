@@ -23,9 +23,18 @@ static char letter;
 static char number;
 static bool finished = false;
 static duk_context *ctx = NULL; //init duk
+static char winner[10];
 
 int main(int argc, char *argv[])
 {
+    if(argc != 2){
+        printf("You need to use randy.js or ty.js for your AI.\r\n");
+        exit(0);
+    }
+    if(strcmp(argv[1], "randy.js") != 0 && strcmp(argv[1], "ty.js") != 0){
+        printf("You need to use randy.js or ty.js for your AI.\r\n");
+        exit(0);
+    }
     /* initialize your non-curses data structures here */
 
     (void) signal(SIGINT, finish);      /* arrange interrupts to terminate */
@@ -41,7 +50,11 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
+<<<<<<< HEAD
     if (duk_peval_file(ctx, "ty.js"/*argv[1]*/) != 0) {
+=======
+    if (duk_peval_file(ctx, argv[1]) != 0) {
+>>>>>>> 0fa33614708d2b7e4e589174e8acd05e1c72393f
         printf("Error: %s\n", duk_safe_to_string(ctx, -1));
         duk_destroy_heap(ctx);
         finish(0);
@@ -61,6 +74,12 @@ int main(int argc, char *argv[])
         finished = gameOver();
     }
 
+    draw();
+    mvprintw(15,0,"                                             ");  //clear screen
+    mvprintw(16,0,"                                             ");  //clear screen
+    mvprintw(15, 0, "Game over, %s wins", winner);
+    refresh();
+    sleep(5);
     //game code
 
     finish(0);               /* we're done */
@@ -69,23 +88,39 @@ int main(int argc, char *argv[])
 static bool gameOver(){
     //Checking for horizontal lines
     for(int x=0; x < 3; x++){
-        if(board[x][0] == board[x][1] && board[x][1] == board[x][2] && board[x][0] != ' '){
+        if(board[x][0] == board[x][1] && board[x][0] == board[x][2] && board[x][0] != ' '){
+            if(board[x][0] == 'X')
+                strcpy(winner, "BERTIE");
+            else
+                strcpy(winner, "PLAYER");
             return true;
         }
     }
 
     //Checking for vertical lines
     for(int y=0; y < 3; y++){
-        if(board[0][y] == board[1][y] && board[1][y] == board[2][y] && board[y][0] != ' '){
+        if(board[0][y] == board[1][y] && board[0][y] == board[2][y] && board[0][y] != ' '){
+            if(board[0][y] == 'X')
+                strcpy(winner, "BERTIE");
+            else
+                strcpy(winner, "PLAYER");
             return true;
         }
     }
 
     //Checking for diagonals
     if(board[0][0] == board[1][1] && board[1][1] == board[2][2] && board[0][0] != ' '){
+        if(board[0][0] == 'X')
+            strcpy(winner, "BERTIE");
+        else
+            strcpy(winner, "PLAYER");
         return true;
     }
     if(board[0][2] == board[1][1] && board[1][1] == board[2][0] && board[0][2] != ' '){
+        if(board[0][2] == 'X')
+            strcpy(winner, "BERTIE");
+        else
+            strcpy(winner, "PLAYER");
         return true;
     }
 
@@ -97,6 +132,7 @@ static bool gameOver(){
             }
         }
     }
+    strcpy(winner, "NO ONE");
     return true;
 }
 static void draw()
