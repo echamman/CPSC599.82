@@ -47,5 +47,4 @@ Spanish - es_ES
 German - de_DE
 
 The link to the program video can be found at:
-
-<LINK>
+https://vid.me/Sn30
