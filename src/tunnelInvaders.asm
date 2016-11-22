@@ -28,7 +28,7 @@ stub	.BYTE #$0	;New line
 gameloop            ;check input,update data, draw data to screen
     JSR checkInput  ;returns user input to Reg Y
 	JSR updateship  ;draw changes to ship
-    ;JSR updatedata  ;based off Reg Y update certain blocks
+    JSR updatedata  ;based off Reg Y update certain blocks
 	JSR drawroof
 	JSR drawfloor
 	JSR printScoreLevel
@@ -200,10 +200,21 @@ block              ;but block char in to screen code 0
     RTS
 
 
-
+;1) load col + 1 in to memory
+;2) clear col 
+;
+;3) store col = col + 1 
+    
 updatedata
-
-
+    LDX #$01
+    LDY #$00
+rfupdate
+    LDA topscreen,x
+    STA topscreen,y
+    INX
+    INY
+    CPX #$16
+    BNE rfupdate
     RTS
 
 updateship                ;this just draws our ship
@@ -590,15 +601,12 @@ ship
     .BYTE   $FC,$F8,$E0,$C0,$E0,$F0,$F0,$E0 ;[2][2]
 
 topscreen	;22 bytes showing the depth of the roof for each spot
-	.BYTE $01, $02, $03, $04, $03, $04, $05, $06, $05, $04, $03
+	.BYTE $01, $02, $03, $04, $03, $04, $0A, $06, $05, $04, $03
 	.BYTE $03, $04, $05, $06, $07, $06, $05, $04, $03, $02, $01
 
 bottomscreen	;22 bytes showing the depth of the floor for each spot
-	.BYTE $0B, $0a, $09, $08, $07, $06, $05, $04, $05, $06, $07
+	.BYTE $0B, $0A, $09, $08, $07, $06, $01, $04, $05, $06, $07
 	.BYTE $07, $06, $05, $04, $03, $04, $05, $06, $07, $08, $09
-bottomscreen1
-	.BYTE $01, $02, $03, $04, $03, $04, $05, $06, $05, $04, $03
-	.BYTE $03, $04, $05, $06, $07, $06, $05, $04, $03, $02, $01
 
 ycoord
     .WORD $
