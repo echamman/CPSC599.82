@@ -406,7 +406,7 @@ drawroof
     LDX #$00            ;Depth
 drnextrow
     INX                 ;increase depth
-    CPX #$0B            ;compare depth and elem to 11,21
+    CPX #$0C            ;compare depth and elem to 11,21
     BEQ drdone            ;if both 0 then done
     LDY #$FF            ;block element
     STX depth           ;Store depth
@@ -589,16 +589,13 @@ ship
     .BYTE   $FF,$FF,$FF,$FF,$FF,$FF,$FB,$01 ;[2][1]
     .BYTE   $FC,$F8,$E0,$C0,$E0,$F0,$F0,$E0 ;[2][2]
 
-topscreen	;22 bytes showing the depth of the roof for each spot
-	.BYTE $01, $02, $03, $04, $03, $04, $05, $06, $05, $04, $03
-	.BYTE $03, $04, $05, $06, $07, $06, $05, $04, $03, $02, $01
+topscreen	;22 bytes showing the depth of the roof for each spot ($00 = single depth - $0B = 11 depth)
+	.BYTE $0B, $02, $03, $04, $03, $04, $05, $06, $05, $04, $03
+	.BYTE $03, $04, $05, $06, $07, $06, $05, $04, $03, $02, $03
 
-bottomscreen	;22 bytes showing the depth of the floor for each spot
-	.BYTE $0B, $0a, $09, $08, $07, $06, $05, $04, $05, $06, $07
+bottomscreen	;22 bytes showing the depth of the floor for each spot? ($0B = single height - $00 = 11 height)
+	.BYTE $01, $0B, $0B, $0B, $0B, $0B, $0B, $0B, $0B, $0B, $0B
 	.BYTE $07, $06, $05, $04, $03, $04, $05, $06, $07, $08, $09
-bottomscreen1
-	.BYTE $01, $02, $03, $04, $03, $04, $05, $06, $05, $04, $03
-	.BYTE $03, $04, $05, $06, $07, $06, $05, $04, $03, $02, $01
 
 ycoord
     .WORD $
