@@ -33,6 +33,7 @@ gameloop            ;check input,update data, draw data to screen
 	JSR drawfloor
 	JSR printScoreLevel
 	JSR waitTurn
+    JSR clearscreen
     LDA #$01
     BNE gameloop
 
@@ -211,10 +212,25 @@ updatedata
 rfupdate
     LDA topscreen,x
     STA topscreen,y
+    LDA bottomscreen,x
+    STA bottomscreen,y
     INX
     INY
-    CPX #$16
-    BNE rfupdate
+    CPX #$17
+    BMI rfupdate
+    LDA genvalue
+    LDX #$16
+    STA topscreen,x
+    STA bottomscreen,x
+    CMP #$0A
+    BEQ resetgenvalue
+    ADC #$01
+    STA genvalue
+    BVC updatedone   
+resetgenvalue
+    LDA #$01
+    STA genvalue
+updatedone
     RTS
 
 updateship                ;this just draws our ship
@@ -558,7 +574,7 @@ printScoreLevel
 
 waitTurn
 	LDA $00A2		;load least sig byte of system clock
-	ADC #$02
+	ADC #$03
 	STA currTime
 hold
 	LDA $00A2		;load least sig byte of system clock
@@ -599,26 +615,20 @@ ship
     .BYTE   $7F,$3F,$3F,$1F,$0F,$07,$01,$00 ;[2][0]
     .BYTE   $FF,$FF,$FF,$FF,$FF,$FF,$FB,$01 ;[2][1]
     .BYTE   $FC,$F8,$E0,$C0,$E0,$F0,$F0,$E0 ;[2][2]
+    
+genvalue
+    .BYTE #$03
 
-<<<<<<< HEAD
-topscreen	;22 bytes showing the depth of the roof for each spot
-	.BYTE $01, $02, $03, $04, $03, $04, $0A, $06, $05, $04, $03
-	.BYTE $03, $04, $05, $06, $07, $06, $05, $04, $03, $02, $01
-
-bottomscreen	;22 bytes showing the depth of the floor for each spot
-	.BYTE $0B, $0A, $09, $08, $07, $06, $01, $04, $05, $06, $07
-=======
 topscreen	;22 bytes showing the depth of the roof for each spot ($00 = single depth - $0B = 11 depth)
-	.BYTE $0B, $02, $03, $04, $03, $04, $05, $06, $05, $04, $03
-	.BYTE $03, $04, $05, $06, $07, $06, $05, $04, $03, $02, $03
+	.BYTE $01, $02, $03, $04, $03, $04, $0A, $06, $05, $04, $03
+	.BYTE $03, $04, $05, $06, $07, $06, $05, $04, $03, $02, $0B
 
-bottomscreen	;22 bytes showing the depth of the floor for each spot? ($0B = single height - $00 = 11 height)
-	.BYTE $01, $0B, $0B, $0B, $0B, $0B, $0B, $0B, $0B, $0B, $0B
->>>>>>> 22e0052ad89c199716242d02a0e5da3359938851
-	.BYTE $07, $06, $05, $04, $03, $04, $05, $06, $07, $08, $09
+bottomscreen	;22 bytes showing the depth of the floor for each spot ($0B = single height - $00 = 11 height)
+	.BYTE $0B, $0A, $09, $08, $07, $06, $01, $04, $05, $06, $07
+	.BYTE $07, $06, $05, $04, $03, $04, $05, $06, $07, $08, $00
 
-ycoord
-    .WORD $
+;ycoord
+    ;.WORD $
 
 shipco0					;offset of ship for top half
 	.BYTE #$00
