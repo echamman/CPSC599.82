@@ -1,0 +1,44 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-11-10 11:45-0700\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: as2.c:38 as2.c:42
+#, c-format
+msgid "You need to use randy.js or ty.js for your AI.\n"
+msgstr "Sie müssen randy.js oder ty.js für Ihre künstliche Intelligenz verwenden.\n"
+
+#: as2.c:81
+#, c-format
+msgid "Game over, %s wins"
+msgstr "Spiel vorbei, %s gewinnt"
+
+#: as2.c:96 as2.c:107 as2.c:117 as2.c:124
+msgid "PLAYER"
+msgstr "SPIELER"
+
+#: as2.c:136
+msgid "NO ONE"
+msgstr "NIEMAND"
+
+#: as2.c:192
+msgid "Your move... letter? "
+msgstr "Deine Bewegung ... Brief? "
+
+#: as2.c:198
+msgid "Your move... number? "
+msgstr "Deine Bewegung... nummer? "
