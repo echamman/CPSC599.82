@@ -202,7 +202,7 @@ block              ;but block char in to screen code 0
 
 ;1) load col + 1 in to memory
 ;2) clear col 
-;
+;something here
 ;3) store col = col + 1 
     
 updatedata
