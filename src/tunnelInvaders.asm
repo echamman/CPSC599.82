@@ -31,7 +31,7 @@ gameloop            ;check input,update data, draw data to screen
     JSR updatedata  ;based off Reg Y update certain blocks
 	JSR drawroof
 	JSR drawfloor
-	JSR hitdetect	;Check if hit
+	;JSR hitdetect	;Check if hit
 	JSR printScoreLevel
 	JSR waitTurn
     JSR clearscreen
@@ -268,20 +268,6 @@ clearship0
     STA $1E16,x			;processing input
     LDA #$20
 	STA $1E17,x
-    ;LDA #$20
-    ;STA $1E18,x
-    ;LDA #$20
-    ;STA $1E2C,x
-    ;LDA #$20
-    ;STA $1E2D,x
-    ;LDA #$20
-    ;STA $1E2E,x
-    ;LDA #$20
-    ;STA $1E42,x
-    ;LDA #$20
-    ;STA $1E43,x
-    ;LDA #$20
-    STA $1E44,x
 
 updates
 	;This is called immediately after getinput, so the Y value contains the direction
@@ -330,20 +316,6 @@ drawship01
 	STA $1E16,x
 	LDA #$23
 	STA $1E17,x
-	;LDA #$24
-	;STA $1E18,x
-	;LDA #$25
-	;STA $1E2C,x
-	;LDA #$26
-	;STA $1E2D,x
-	;LDA #$27
-	;STA $1E2E,x
-	;LDA #$28
-	;STA $1E42,x
-	;LDA #$29
-	;STA $1E43,x
-	;LDA #$2A
-	;STA $1E44,x
 	RTS
     ;memory the spaceship
     ;print it to screen.
@@ -362,20 +334,6 @@ clearship1
 	STA $1EC6,x			;processing input, because the process alters the offset
 	LDA #$20
 	STA $1EC7,x
-	;LDA #$20
-	;STA $1EC8,x
-	;LDA #$20
-	;STA $1EDC,x
-	;LDA #$20
-	;STA $1EDD,x
-	;LDA #$20
-	;STA $1EDE,x
-	;LDA #$20
-	;STA $1EF2,x
-	;LDA #$20
-	;STA $1EF3,x
-	;LDA #$20
-	;STA $1EF4,x
 
 	;This is called immediately after getinput, so the Y value contains the direction
 	LDY inputval
@@ -386,7 +344,7 @@ clearship1
 	SBC #$16				;it is then in that half
 	STA shipco1				;Also adds the appropriate amount to the offset to position the ship
 	LDA shipcoY
-	CMP #$08
+	CMP #$09
 	BPL tempskip
 	JMP drawship0
 tempskip
@@ -428,20 +386,6 @@ drawship11
 	STA $1EC6,x
 	LDA #$23
 	STA $1EC7,x
-	;LDA #$24
-	;STA $1EC8,x
-	;LDA #$25
-	;STA $1EDC,x
-	;LDA #$26
-	;STA $1EDD,x
-	;LDA #$27
-	;STA $1EDE,x
-	;LDA #$28
-	;STA $1EF2,x
-	;LDA #$29
-	;STA $1EF3,x
-	;LDA #$2A
-	;STA $1EF4,x
 	RTS
 
 hitdetect
@@ -649,13 +593,7 @@ inputval
 ship
     .BYTE   $7C,$23,$10,$08,$08,$10,$23,$7C ;[0][0]
     .BYTE   $00,$F8,$24,$36,$01,$01,$FE,$00 ;[0][1]
-    .BYTE   $00,$00,$00,$00,$00,$00,$80,$C0 ;[0][2]
-    .BYTE   $3F,$7F,$7F,$7F,$7F,$7F,$7F,$7F ;[1][0]
-    .BYTE   $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF ;[1][1]
-    .BYTE   $E0,$F8,$FC,$FF,$C0,$C0,$C0,$FF ;[1][2]
-    .BYTE   $7F,$3F,$3F,$1F,$0F,$07,$01,$00 ;[2][0]
-    .BYTE   $FF,$FF,$FF,$FF,$FF,$FF,$FB,$01 ;[2][1]
-    .BYTE   $FC,$F8,$E0,$C0,$E0,$F0,$F0,$E0 ;[2][2]
+    .BYTE   $00,$F8,$24,$36,$01,$01,$FE,$00 ;[0][1]
 
 genvalue
     .BYTE #$03
