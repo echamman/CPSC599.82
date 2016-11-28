@@ -121,9 +121,17 @@ checkInput			;Stores direction/fire value to Y register
 	LDX $9122		;load VIA#2 DDR to X
 	STA $9122		;store to VIA#2 DDR
 psf
+	LDA #$00		;zero volume value
+	STA $900E		;store volume
 	LDA $9111		;load joystick input
 	EOR #$DF		;XOR against bitmask
 	BNE psu			;branch to next check
+	LDA #$0F		;load volume 15
+	STA $900E		;store volume
+	LDA #$F1		;load tone value
+	STA $900A		;store to speaker 1
+	;LDA #$ED		;load tone value
+	;STA $900B		;store to speaker 2
 	LDY #$01		;1 is stored to Y if fire is held down
 	STY inputval
 	BNE endInput
@@ -378,7 +386,7 @@ clearship1
 	SBC #$16				;it is then in that half
 	STA shipco1				;Also adds the appropriate amount to the offset to position the ship
 	LDA shipcoY
-	CMP #$09
+	CMP #$08
 	BPL tempskip
 	JMP drawship0
 tempskip
