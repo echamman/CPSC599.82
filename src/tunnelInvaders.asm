@@ -39,6 +39,8 @@ gameloop            ;check input,update data, draw data to screen
     BNE gameloop
 
 gameOver
+	JSR clearscreen
+
 	LDA #$0
 	BEQ gameOver
 
@@ -435,16 +437,16 @@ drawship11
 	RTS
 
 hitdetect
-	LDY shipcoY				;deciding which drawing function to call based on Y
-	CPY #$08				;we need 2 because we cannot use 1 offset for the whole screen
+	LDY shipcoY				;deciding which offset to ceheck based on Y
+	CPY #$08
 	BMI detectTop
 	JMP detectBottom
-detectTop
-	LDX shipco0
+detectTop					;Hit detection works by checking the square the ship is in after
+	LDX shipco0				;drawing the roof and floor
 	LDA #$00
-	EOR $1E16,x
-	BEQ hitTrue
-	LDA #$00
+	EOR $1E16,x				;Roof and floor clear all squares when drawing, so if the square that the ship is in
+	BEQ hitTrue				;is empty, there was no hit
+	LDA #$00				;Checks this by XORing the square with 0
 	EOR $1E17,x
 	BEQ hitTrue
 	RTS
@@ -458,7 +460,7 @@ detectBottom
 	BEQ hitTrue
 	RTS
 hitTrue
-	JMP gameOver
+	JMP gameOver			;Jump to the end of game screen
 
 drawroof
     LDX #$00            ;Depth
