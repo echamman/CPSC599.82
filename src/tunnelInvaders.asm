@@ -441,19 +441,19 @@ hitdetect
 	JMP detectBottom
 detectTop
 	LDX shipco0
-	LDA ship
+	LDA #$00
 	EOR $1E16,x
 	BEQ hitTrue
-	LDA ship,#$1
+	LDA #$00
 	EOR $1E17,x
 	BEQ hitTrue
 	RTS
 detectBottom
 	LDX shipco1
-	LDA ship
+	LDA #$00
 	EOR $1EC6,x
 	BEQ hitTrue
-	LDA ship,#$1
+	LDA #$00
 	EOR $1EC7,x
 	BEQ hitTrue
 	RTS
@@ -637,8 +637,8 @@ inputval
 	.BYTE
 
 ship
-    .BYTE   $00,$00,$00,$01,$07,$0F,$1F,$3F ;[0][0]
-    .BYTE   $00,$00,$00,$F8,$FE,$FF,$FF,$FF ;[0][1]
+    .BYTE   $7C,$23,$10,$08,$08,$10,$23,$7C ;[0][0]
+    .BYTE   $00,$F8,$24,$36,$01,$01,$FE,$00 ;[0][1]
     .BYTE   $00,$00,$00,$00,$00,$00,$80,$C0 ;[0][2]
     .BYTE   $3F,$7F,$7F,$7F,$7F,$7F,$7F,$7F ;[1][0]
     .BYTE   $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF ;[1][1]
