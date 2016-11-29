@@ -30,7 +30,7 @@ gameloop            ;check input,update data, draw data to screen
 	JSR updateship  ;draw changes to ship
     JSR updatedata  ;based off Reg Y update certain blocks
 	JSR drawroof
-	JSR drawfloor
+	;JSR drawfloor
 	;JSR hitdetect	;Check if hit
 	JSR printScoreLevel
 	JSR waitTurn
@@ -413,7 +413,17 @@ detectBottom
 	RTS
 hitTrue
 	JMP gameOver			;Jump to the end of game screen
-
+    
+drawtop ;this will replace drawroof
+    ;1) fill top col with blocks
+    ;2) draw 1st solid blocks    
+    ;3) draw 2nd 'empty' blocks
+    ;4) finish filling the column 
+    rts
+    
+    
+clrcol; was thinking of using this as a subroutine to print full col
+        ;a loop that increments the position of screen by 22 effectively moving down by one    
 drawroof
     LDX #$00            ;Depth
 drnextrow
@@ -428,7 +438,7 @@ drnextcol
     CPY #$16            ;compare y with 22 outtabounds
     BEQ drnextrow        ;if equal to 22 then set y=0, x++
 
-    LDA topscreen,y     ;load the contents of the element of topscreen[y]
+    LDA #$0B            ;loads depth 11
     CMP depth           ;compare A with depth
     BMI drnextcol        ;if depth > A then try next element
                 ;this chunck is prep for mul22
@@ -478,7 +488,7 @@ mul22                   ;assume input is y. F(y) = y*22 = x1 + x2 + x3
     RTS
 
 drawfloor
-    LDX #$0C            ;Depth
+    LDX #$0B            ;Depth
 dfnextrow
     DEX    ;increase depth
     CPX #$00            ;compare depth and elem to 11,21
@@ -512,7 +522,7 @@ dfnextcol
     ADC oldy
     TAY
     LDA #$00            ;else depth <= A then draw; store block in A
-    STA $1EF2,y;+((depth-1)*22)         ;print block at y; will need to
+    STA $1E16,y;+((depth-1)*22)         ;print block at y; will need to
     LDY oldy
     JMP dfnextcol       ;to next elem
 dfdone
@@ -606,6 +616,14 @@ bottomscreen	;22 bytes showing the depth of the floor for each spot ($0B = singl
 	.BYTE $0B, $0B, $0B, $0B, $0B, $0B, $0B, $0B, $0B, $0B, $0B
 	.BYTE $0B, $0B, $0B, $0B, $0B, $0B, $0B, $0B, $0B, $0B, $01
 
+topset	;gives information on how many blocks to draw on the top
+    .BYTE $02, $02, $02, $02, $02, $02, $02, $02, $02, $02, $02
+    .BYTE $02, $02, $02, $02, $02, $02, $02, $02, $02, $02, $02
+
+emptyset	;gives information on how many empty blocks to draw after top.
+	.BYTE $02, $02, $02, $02, $02, $02, $02, $02, $02, $02, $02
+    .BYTE $02, $02, $02, $02, $02, $02, $02, $02, $02, $02, $02
+    
 ;ycoord
     ;.WORD $
 
@@ -623,6 +641,12 @@ shipcoY					;Y position of ship
 
 depth
     .WORD $00
+topoffset
+    .WORD $00
+emptyoffset
+    .WORD $00
 
+    
+    
 internum
     .BYTE $00,$00,$00
