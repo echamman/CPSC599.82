@@ -1,0 +1,16 @@
+TODO:
+
+- Complete tunnel infrastructure
+- Create basic tunnel generation algorithm
+- Impliment hit detection DONE
+- Add items/ objects
+- Add hit detection for objects
+- Add other block shapes
+- Add scoring
+- Add timer
+- Create level transfer detection
+- Impliment other tunnel generation algorithms and colour channge
+- Add shooting
+- Add hit detection for shooting
+- Add other nice effects (ship exaust, explosions)
+- clean up the code
