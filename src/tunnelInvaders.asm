@@ -27,7 +27,8 @@ stub	.BYTE #$0	;New line
     JSR intro
 gameloop            ;check input,update data, draw data to screen
     JSR checkInput  ;returns user input to Reg Y
-	JSR updateship  ;draw changes to ship
+	JSR useInput
+	;JSR updateship  ;draw changes to ship
     ;JSR updatedata  ;based off Reg Y update certain blocks
 	JSR filltop
 	JSR fillbottom
@@ -168,6 +169,45 @@ noPush
 	STY inputval
 endInput
 	STX $9122		;else restore VIA#2
+	RTS
+
+useInput
+	CPY #$02
+	BNE tryDown
+	LDA shipcoY
+	CMP #$00
+	BEQ endUse
+	DEC shipcoY
+	LDA #$00
+	BEQ endUse
+tryDown
+	CPY #$03
+	BNE tryLeft
+	LDA shipcoY
+	CMP #$15
+	BEQ endUse
+	INC shipcoY
+	LDA #$00
+	BEQ endUse
+tryLeft
+	CPY #$04
+	BNE tryRight
+	LDA shipcoX
+	CMP #$00
+	BEQ endUse
+	DEC shipcoX
+	LDA #$00
+	BEQ endUse
+tryRight
+	CPY #$05
+	BNE endUse
+	LDA shipcoX
+	CMP #$15
+	BEQ endUse
+	INC shipcoX
+	LDA #$00
+	BEQ endUse
+endUse
 	RTS
 
 setchars             ;Store the character set in RAM
@@ -421,6 +461,11 @@ hitTrue
 	JMP gameOver			;Jump to the end of game screen
 
 colortop	;Changes color of char printed, Y val should be internum+1, X is internum+
+	CPX shipcoX
+	BNE blackt
+	CPY shipcoY
+	BEQ whitet
+blackt
 	LDA topset,x
 	STA internum
 	CPY internum
@@ -453,12 +498,26 @@ whitet
 	STA $9600,x			;Print character as
 	RTS
 
-colorbottom	;Changes color of char printed, Y val should be internum+1, X is internum+
-	LDA topset,x
+colorbottom	;Changes color of char printed
+	CPX shipcoX
+	BNE blackb
+	LDA shipcoY
+	CMP #$0B
+	BMI blackb
+	CLC
+	SBC #$0A
+	STA internum
+	CPY internum
+	BEQ whiteb
+blackb
+	LDA #$0C
+	CLC
+	SBC emptyset,x
 	STA internum
 	CPY internum
 	BMI whiteb			;Check if Y is above tunnel
-	LDA emptyset,x
+	LDA #$0B
+	SBC topset,x
 	STA internum
 	CPY internum
 	BPL whiteb			;Check if Y is below tunnel
@@ -500,11 +559,6 @@ fillcol
 	PLA
 	TAX
 	STY depth			;Keep Y in the depth for later use
-	CPX shipcoX			;Don't draw over ship
-	BNE dotop
-	CPY shipcoY
-	BEQ skiptop
-dotop
 	STY internum
 	TXA
 	PHA					;Push X to stack
@@ -513,12 +567,25 @@ dotop
 	TAX
 	CLC
 	ADC internum		;Adding the x value to the y val for offset
+	PHA					;Push this to stack
+	LDY depth
+	CPX shipcoX
+	BNE drawBlock
+	CPY shipcoY
+	BEQ drawship
+drawBlock
+	PLA
 	TAY
-	CPY shipco0
-	BEQ skiptop			;Dont draw over ship
 	LDA #$00			;;Block to print
 	STA $1E00,y			;Print at offset
-skiptop
+	LDA #$00
+	BEQ cont
+drawship
+	PLA
+	TAY
+	LDA #$23
+	STA $1E00,y			;Print at offset
+cont
 	LDY depth
 	INY
 	CPY #$0B			;Compare Y to 11
@@ -551,12 +618,31 @@ fillcolb
 	TAX
 	CLC
 	ADC internum		;Adding the x value to the y val for offset
+	PHA					;Push this to stack
+	LDY depth
+	CPX shipcoX
+	BNE drawBlockb
+	LDA shipcoY
+	CMP #$0B
+	BMI drawBlockb
+	CLC
+	SBC #$0A
+	STA internum
+	CPY internum
+	BEQ drawshipb
+drawBlockb
+	PLA
 	TAY
-	CPY shipco0
-	BEQ skipbot			;Dont draw over ship
 	LDA #$00			;;Block to print
 	STA $1EF2,y			;Print at offset
-skipbot
+	LDA #$00
+	BEQ contb
+drawshipb
+	PLA
+	TAY
+	LDA #$23
+	STA $1EF2,y			;Print at offset
+contb
 	LDY depth
 	INY
 	CPY #$0B			;Compare Y to 11
@@ -780,7 +866,7 @@ shipcoX					;X position of ship
 	.BYTE #$00
 
 shipcoY					;Y position of ship
-	.BYTE #$00
+	.BYTE #$05
 
 depth
     .WORD $00
