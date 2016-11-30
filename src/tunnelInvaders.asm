@@ -28,13 +28,13 @@ stub	.BYTE #$0	;New line
 gameloop            ;check input,update data, draw data to screen
     JSR checkInput  ;returns user input to Reg Y
 	JSR updateship  ;draw changes to ship
-    JSR updatedata  ;based off Reg Y update certain blocks
-	JSR drawroof
-	;JSR drawfloor
+    ;JSR updatedata  ;based off Reg Y update certain blocks
+	JSR filltop
+	JSR fillbottom
 	;JSR hitdetect	;Check if hit
-	JSR printScoreLevel
+	;JSR printScoreLevel
 	JSR waitTurn
-    JSR clearscreen
+    ;JSR clearscreen
     LDA #$01
     BNE gameloop
 
@@ -250,7 +250,7 @@ updatedone
 
 updateship                ;this just draws our ship
 	LDY shipcoY				;deciding which drawing function to call based on Y
-	CPY #$08				;we need 2 because we cannot use 1 offset for the whole screen
+	CPY #$09				;we need 2 because we cannot use 1 offset for the whole screen
 	BMI drawship0
 	JMP drawship1
 
@@ -265,9 +265,9 @@ drawship0
 clearship0
     LDA #$20
 	LDX shipco0			;Clearing ship based on offset, done before
-    STA $1E16,x			;processing input
+    STA $1E00,x			;processing input
     LDA #$20
-	STA $1E17,x
+	STA $1E01,x
 
 updates
 	;This is called immediately after getinput, so the Y value contains the direction
@@ -313,9 +313,12 @@ updateright
 drawship01
 	LDA #$22
 	LDX shipco0				;reprint ship based on offset
-	STA $1E16,x
+	STA $1E00,x
 	LDA #$23
-	STA $1E17,x
+	STA $1E01,x
+	LDA #$01				;Change char to white
+	STA $9600,x
+	STA $9601,x
 	RTS
     ;memory the spaceship
     ;print it to screen.
@@ -331,9 +334,9 @@ drawship1
 clearship1
 	LDA #$20
 	LDX shipco1			;Clears ship based on offset, must be one before
-	STA $1EC6,x			;processing input, because the process alters the offset
+	STA $1EB0,x			;processing input, because the process alters the offset
 	LDA #$20
-	STA $1EC7,x
+	STA $1EB1,x
 
 	;This is called immediately after getinput, so the Y value contains the direction
 	LDY inputval
@@ -344,7 +347,7 @@ clearship1
 	SBC #$16				;it is then in that half
 	STA shipco1				;Also adds the appropriate amount to the offset to position the ship
 	LDA shipcoY
-	CMP #$09
+	CMP #$08
 	BPL tempskip
 	JMP drawship0
 tempskip
@@ -383,9 +386,12 @@ updateright1
 drawship11
 	LDA #$22
 	LDX shipco1				;Redraws ship based on offset
-	STA $1EC6,x
+	STA $1EF2,x
 	LDA #$23
-	STA $1EC7,x
+	STA $1EF3,x
+	LDA #$01				;Change char to white
+	STA $96F2,x
+	STA $96F3,x
 	RTS
 
 hitdetect
@@ -396,34 +402,171 @@ hitdetect
 detectTop					;Hit detection works by checking the square the ship is in after
 	LDX shipco0				;drawing the roof and floor
 	LDA #$00
-	EOR $1E16,x				;Roof and floor clear all squares when drawing, so if the square that the ship is in
-	BEQ hitTrue				;is empty, there was no hit
+	EOR $9600,x				;Checks color of the block, so if the square that the ship is in
+	BEQ hitTrue				;is black, there was no hit
 	LDA #$00				;Checks this by XORing the square with 0
-	EOR $1E17,x
+	EOR $9600,x
 	BEQ hitTrue
 	RTS
 detectBottom
 	LDX shipco1
 	LDA #$00
-	EOR $1EC6,x
+	EOR $96F2,x
 	BEQ hitTrue
 	LDA #$00
-	EOR $1EC7,x
+	EOR $96F2,x
 	BEQ hitTrue
 	RTS
 hitTrue
 	JMP gameOver			;Jump to the end of game screen
-    
-drawtop ;this will replace drawroof
-    ;1) fill top col with blocks
-    ;2) draw 1st solid blocks    
-    ;3) draw 2nd 'empty' blocks
-    ;4) finish filling the column 
-    rts
-    
-    
-clrcol; was thinking of using this as a subroutine to print full col
-        ;a loop that increments the position of screen by 22 effectively moving down by one    
+
+colortop	;Changes color of char printed, Y val should be internum+1, X is internum+
+	LDA topset,x
+	STA internum
+	CPY internum
+	BMI whitet			;Check if Y is above tunnel
+	LDA emptyset,x
+	STA internum
+	CPY internum
+	BPL whitet			;Check if Y is below tunnel
+	TXA
+	STY internum
+	PHA
+	JSR	mul22
+	PLA
+	CLC
+	ADC internum
+	TAX
+	LDA #$00
+	STA $9600,x			;Print character as
+	RTS
+whitet
+	TXA
+	STY internum
+	PHA
+	JSR mul22
+	PLA
+	CLC
+	ADC internum
+	TAX
+	LDA #$01
+	STA $9600,x			;Print character as
+	RTS
+
+colorbottom	;Changes color of char printed, Y val should be internum+1, X is internum+
+	LDA topset,x
+	STA internum
+	CPY internum
+	BMI whiteb			;Check if Y is above tunnel
+	LDA emptyset,x
+	STA internum
+	CPY internum
+	BPL whiteb			;Check if Y is below tunnel
+	TXA
+	STY internum
+	PHA
+	JSR	mul22
+	PLA
+	CLC
+	ADC internum
+	TAX
+	LDA #$00
+	STA $96F2,x			;Print character as black
+	RTS
+whiteb
+	TXA
+	STY internum
+	PHA
+	JSR mul22
+	PLA
+	CLC
+	ADC internum
+	TAX
+	LDA #$01
+	STA $96F2,x			;Print character as white
+	RTS
+
+filltop		;Fills top half with columns, prints either black or white block depending on data
+	LDX #$00 			;Length along top moved
+	LDY #$00			;Depth of columns
+fillcol
+	TXA
+	PHA
+	TYA
+	PHA
+	JSR colortop
+	PLA
+	TAY
+	PLA
+	TAX
+	STY depth			;Keep Y in the depth for later use
+	CPX shipcoX			;Don't draw over ship
+	BNE dotop
+	CPY shipcoY
+	BEQ skiptop
+dotop
+	STY internum
+	TXA
+	PHA					;Push X to stack
+	JSR mul22
+	PLA					;Pull X
+	TAX
+	CLC
+	ADC internum		;Adding the x value to the y val for offset
+	TAY
+	CPY shipco0
+	BEQ skiptop			;Dont draw over ship
+	LDA #$00			;;Block to print
+	STA $1E00,y			;Print at offset
+skiptop
+	LDY depth
+	INY
+	CPY #$0B			;Compare Y to 11
+	BMI fillcol
+	INX
+	LDY #$00
+	CPX #$16			;Compare x to 23
+	BMI fillcol
+	RTS
+
+fillbottom
+	LDX #$00 			;Length along top moved
+	LDY #$00			;Depth of columns
+fillcolb
+	TXA
+	PHA
+	TYA
+	PHA
+	JSR colorbottom
+	PLA
+	TAY
+	PLA
+	TAX
+	STY depth			;Keep Y in the depth for later use
+	STY internum
+	TXA
+	PHA					;Push X to stack
+	JSR mul22
+	PLA					;Pull X
+	TAX
+	CLC
+	ADC internum		;Adding the x value to the y val for offset
+	TAY
+	CPY shipco0
+	BEQ skipbot			;Dont draw over ship
+	LDA #$00			;;Block to print
+	STA $1EF2,y			;Print at offset
+skipbot
+	LDY depth
+	INY
+	CPY #$0B			;Compare Y to 11
+	BMI fillcolb
+	INX
+	LDY #$00
+	CPX #$16			;Compare x to 23
+	BMI fillcolb
+	RTS
+
 drawroof
     LDX #$00            ;Depth
 drnextrow
@@ -544,9 +687,9 @@ printScoreLevel
 	LDA #$30		;0
 	STA $1FEB
 	LDA #$30		;0
+	STA $1FED
 	STA $1FEC
 	LDA #$30		;0
-	STA $1FED
 
 	LDA #$0C		;L
 	STA $1FF0
@@ -620,10 +763,10 @@ topset	;gives information on how many blocks to draw on the top
     .BYTE $02, $02, $02, $02, $02, $02, $02, $02, $02, $02, $02
     .BYTE $02, $02, $02, $02, $02, $02, $02, $02, $02, $02, $02
 
-emptyset	;gives information on how many empty blocks to draw after top.
-	.BYTE $02, $02, $02, $02, $02, $02, $02, $02, $02, $02, $02
-    .BYTE $02, $02, $02, $02, $02, $02, $02, $02, $02, $02, $02
-    
+emptyset	;gives information on how many empty blocks to draw after top. Val must be bigger than corresponding topset val
+	.BYTE $07, $07, $07, $07, $07, $07, $07, $07, $07, $07, $07
+    .BYTE $04, $05, $06, $07, $08, $09, $0A, $0B, $03, $04, $05
+
 ;ycoord
     ;.WORD $
 
@@ -646,7 +789,7 @@ topoffset
 emptyoffset
     .WORD $00
 
-    
-    
+
+
 internum
-    .BYTE $00,$00,$00
+    .BYTE $00,$00,$00,$00,$00
