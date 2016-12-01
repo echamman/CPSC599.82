@@ -174,7 +174,7 @@ staticobs1
     CPX #$08       ;dec 72 = 1*8
     BNE staticobs1
     RTS
-    
+
 checkInput			;Stores direction/fire value to Y register
 	LDA #$00		;port input mask
 	STA $9113		;store to VIA#1 DDR
@@ -349,11 +349,11 @@ blackt
 	LDA topset,x
 	STA internum
 	CPY internum
-	BMI whitet			;Check if Y is above tunnel
+	BMI colort			;Check if Y is above tunnel
 	LDA emptyset,x
 	STA internum
 	CPY internum
-	BPL whitet			;Check if Y is below tunnel
+	BPL colort			;Check if Y is below tunnel
 	TXA
 	STY internum
 	PHA
@@ -377,6 +377,18 @@ whitet
 	LDA #$01
 	STA $9600,x			;Print character as
 	RTS
+colort
+	TXA
+	STY internum
+	PHA
+	JSR mul22
+	PLA
+	CLC
+	ADC internum
+	TAX
+	LDA levelcolor
+	STA $9600,x			;Print character as level color
+	RTS
 
 colorbottom	            ;Changes color of char printed
 	CPX shipcoX
@@ -395,12 +407,12 @@ blackb
 	SBC emptyset,x
 	STA internum
 	CPY internum
-	BMI whiteb			;Check if Y is above tunnel
+	BMI colorb			;Check if Y is above tunnel
 	LDA #$0B
 	SBC topset,x
 	STA internum
 	CPY internum
-	BPL whiteb			;Check if Y is below tunnel
+	BPL colorb			;Check if Y is below tunnel
 	TXA
 	STY internum
 	PHA
@@ -423,6 +435,18 @@ whiteb
 	TAX
 	LDA #$01
 	STA $96F2,x			;Print character as white
+	RTS
+colorb
+	TXA
+	STY internum
+	PHA
+	JSR mul22
+	PLA
+	CLC
+	ADC internum
+	TAX
+	LDA levelcolor
+	STA $96F2,x			;Print character as the level color
 	RTS
 
 filltop		;Fills top half with columns, prints either black or white block depending on data
@@ -553,7 +577,7 @@ mul22                   ;assume input is y. F(y) = y*22 = x1 + x2 + x3
     ADC internum,x      ;x = x + x1
     STA internum
     RTS
-    
+
 updateScore
     LDA currTurn
     CMP #$0A    ;compare to 10
@@ -624,6 +648,13 @@ nextSubLevel
     BEQ nextLevel
     ADC #$01
     STA currSubLevel
+	INC levelcolor			;Increments levelcolor incrementer
+	LDA levelcolor
+	CMP #$07
+	BMI noresetc
+	LDA #$01
+	STA levelcolor
+noresetc
     JSR nextLevelHandler
     BVC endUpdateLevel
 nextLevel                   ;incs by two for reasons...
@@ -706,15 +737,15 @@ hold
 ;=============================================================================
 ;DATA
     org $1800        ;dec  6144
-    
+
 inputval
 	.BYTE $00
-    
+
 currTime
 	.BYTE #$00
 currTurn
     .BYTE $00
-    
+
 levelCounter
     .BYTE $00
 currLevel
@@ -746,7 +777,7 @@ topset	;gives information on how many blocks to draw on the top
 emptyset	;gives information on how many empty blocks to draw after top. Val must be bigger than corresponding topset val
 	.BYTE $07, $07, $07, $07, $07, $07, $07, $07, $07, $07, $07
     .BYTE $07, $07, $07, $07, $07, $07, $07, $07, $07, $07, $07
-    
+
 shipcoX					;X position of ship
 	.BYTE #$00
 shipcoY					;Y position of ship
@@ -763,3 +794,6 @@ fallingobs                ;falling obs (non destroyable)
 	.BYTE $FF,$FF,$7E,$7E,$3C,$3C,$18,$18
 staticobs                    ;destroable terrain
 	.BYTE $FF,$3C,$18,$18,$18,$18,$3C,$FF
+
+levelcolor
+	.BYTE $01
