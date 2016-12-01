@@ -169,7 +169,7 @@ static_obs_obj
     LDX #$0
 staticobs1
     LDA staticobs,x      ;Chatset location 30 or dec 7465-7472
-    STA $1D18,x
+    STA $1D28,x
     INX
     CPX #$08       ;dec 72 = 1*8
     BNE staticobs1
