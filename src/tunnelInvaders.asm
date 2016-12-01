@@ -113,7 +113,7 @@ print2
 	BNE print2
     RTS
 
-setchars             ;Store the character set in RAM
+setchars            ;Store the character set in RAM
     LDA #$FF        ;Tell vic to read chars from RAM
     STA $9005       ;poke 36869,255
     LDA #$1C        ;securing charset location
