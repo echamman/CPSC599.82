@@ -596,7 +596,7 @@ drawBlock
 drawship
 	PLA
 	TAY
-	LDA #$23
+	LDA #$22
 	STA $1E00,y			;Print at offset
 cont
 	LDY depth
@@ -653,7 +653,7 @@ drawBlockb
 drawshipb
 	PLA
 	TAY
-	LDA #$23
+	LDA #$22
 	STA $1EF2,y			;Print at offset
 contb
 	LDY depth
@@ -957,9 +957,7 @@ inputval
 	.BYTE
 
 ship
-    .BYTE   $7C,$23,$10,$08,$08,$10,$23,$7C ;[0][0]
-    .BYTE   $00,$F8,$24,$36,$01,$01,$FE,$00 ;[0][1]
-    .BYTE   $00,$F8,$24,$36,$01,$01,$FE,$00 ;[0][1]
+    .BYTE   $00,$18,$24,$F3,$7E,$3C,$00,$00 ;[0][0]
 
 genvalue
     .BYTE #$07
