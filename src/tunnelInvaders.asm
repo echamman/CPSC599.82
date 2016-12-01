@@ -28,9 +28,8 @@ stub	.BYTE #$0	;New line
 gameloop            ;check input,update data, draw data to screen
     JSR checkInput  ;returns user input to Reg Y
 	JSR useInput    ;needs comments in function
-    JSR updatedata  ;based off Reg Y update certain blocks -> needs comments in function
-	JSR filltop
-	JSR fillbottom
+	JSR updatedata  ;based off Reg Y update certain blocks -> needs comments in function
+	JSR fillscreen
 	JSR hitdetect	;Check if hit
 	JSR updateScore
 	JSR printScoreLevel
@@ -449,9 +448,19 @@ colorb
 	STA $96F2,x			;Print character as the level color
 	RTS
 
+fillscreen				;Keeps an X counter for moving horizontally across screen
+	LDX #$00			;Calls filltop and fillbottom to print screen column by column
+screenloop
+	LDY #$00
+	JSR filltop
+	LDY #$00
+	JSR fillbottom
+	INX
+	CPX #$16
+	BMI screenloop
+	RTS
+
 filltop		;Fills top half with columns, prints either black or white block depending on data
-	LDX #$00 			;Length along top moved
-	LDY #$00			;Depth of columns
 fillcol
 	TXA
 	PHA
@@ -494,15 +503,9 @@ cont
 	INY
 	CPY #$0B			;Compare Y to 11
 	BMI fillcol
-	INX
-	LDY #$00
-	CPX #$16			;Compare x to 23
-	BMI fillcol
 	RTS
 
 fillbottom
-	LDX #$00 			;Length along top moved
-	LDY #$00			;Depth of columns
 fillcolb
 	TXA
 	PHA
@@ -551,10 +554,6 @@ contb
 	INY
 	CPY #$0B			;Compare Y to 11
 	BMI fillcolb
-	INX
-	LDY #$00
-	CPX #$16			;Compare x to 23
-	BMI fillcolb
 	RTS
                ;mul22 takes input in at internum[0],output at internum[0]
 mul22                   ;assume input is y. F(y) = y*22 = x1 + x2 + x3
@@ -577,7 +576,7 @@ mul22                   ;assume input is y. F(y) = y*22 = x1 + x2 + x3
     ADC internum,x      ;x = x + x1
     STA internum
     RTS
-    
+
 addPickupToScore
     LDX #$00
 pickupScoreLoop
