@@ -7,8 +7,8 @@ TODO:
 - Add hit detection for objects
 - Add other block shapes
 - Add scoring DONE
-- Add scoring for pickup
-- Add timer
+- Add scoring for pickup DONE
+- Add timer ???
 - Create level transfer detection DONE
 - Impliment other tunnel generation algorithms and colour channge
 - Add shooting
