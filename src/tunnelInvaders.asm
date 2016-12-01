@@ -1002,6 +1002,13 @@ topoffset
 emptyoffset
     .WORD $00
 
+pickup
+	.BYTE $3C,$42,$99,$BD,$BD,$99,$42,$3C
+obstacle
+	.BYTE $FF,$FF,$7E,$7E,$3C,$3C,$18,$18
+wall
+	.BYTE $FF,$3C,$18,$18,$18,$18,$3C,$FF
+
 
 
 internum
