@@ -26,7 +26,7 @@ stub	.BYTE #$0	;New line
     JSR setchars     ;Loads charset from ROM to RAM
     JSR intro
 gameloop            ;check input,update data, draw data to screen
-    JSR checkInput  ;returns user input to Reg Y
+    ;JSR checkInput  ;returns user input to Reg Y
 	JSR useInput    ;needs comments in function
 	JSR updatedata  ;based off Reg Y update certain blocks -> needs comments in function
 	JSR fillscreen
@@ -230,42 +230,47 @@ endInput
 	RTS
 
 useInput
+	LDA #$00		;port input mask
+	STA $9113		;store to VIA#1 DDR
+	LDX $9122		;load VIA#2 DDR to X
+	STA $9122		;store to VIA#2 DDR
+	LDA $9111		;load joystick input
 tryUp
-	CPY #$02
+	EOR #$FB
 	BNE tryDown
 	LDA shipcoY
 	CMP #$00
-	BEQ endUse
+	BEQ tryDown
 	DEC shipcoY
-	LDA #$00
-	BEQ endUse
 tryDown
-	CPY #$03
+	LDA $9111
+	EOR #$F7
 	BNE tryLeft
 	LDA shipcoY
 	CMP #$15
-	BEQ endUse
+	BEQ tryLeft
 	INC shipcoY
-	LDA #$00
-	BEQ endUse
 tryLeft
-	CPY #$04
+	LDA $9111
+	EOR #$EF
 	BNE tryRight
 	LDA shipcoX
 	CMP #$00
-	BEQ endUse
+	BEQ tryRight
 	DEC shipcoX
-	LDA #$00
-	BEQ endUse
 tryRight
-	CPY #$05
-	BNE endUse
+	LDA $9120		;load joystick input (VIA2)
+	EOR #$7F		;XOR against bitmask
+	BNE tryFire
 	LDA shipcoX
 	CMP #$15
-	BEQ endUse
+	BEQ tryFire
 	INC shipcoX
-	LDA #$00
-	BEQ endUse
+tryFire
+	LDA $9111		;load joystick input
+	EOR #$DF
+	BNE endUse
+	;Make beeps
 endUse
 	RTS
 
