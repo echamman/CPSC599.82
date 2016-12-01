@@ -577,6 +577,21 @@ mul22                   ;assume input is y. F(y) = y*22 = x1 + x2 + x3
     ADC internum,x      ;x = x + x1
     STA internum
     RTS
+    
+addPickupToScore
+    LDX #$00
+pickupScoreLoop
+    JSR addTenPickupToScore
+    INX
+    CPX #$04            ;score value coeffcient on 10
+    BNE pickupScoreLoop
+addTenPickupToScore
+    LDA currScoreTens
+    CMP #$09
+    BEQ addHunToScore
+    ADC #$01
+    STA currScoreTens
+    RTS
 
 updateScore
     LDA currTurn
@@ -593,6 +608,7 @@ addOneToScore
     BEQ addTenToScore
     ADC #$01
     STA currScoreOnes
+    ;JSR updateLevel     ;For Testing use
     BVC updateScoreEnd
 addTenToScore
     LDA #$00
@@ -611,7 +627,7 @@ addHunToScore
     BEQ addThouToScore
     ADC #$01
     STA currScoreHuns
-    JSR updateLevel
+    JSR updateLevel     ;change level every 100 points
     BVC updateScoreEnd
 addThouToScore
     LDA #$00
@@ -634,20 +650,34 @@ updateScoreEnd
     RTS
 
 updateLevel
-    ;LDA levelCounter
-    ;CMP #$F0            ;120 loops = 360 jiffies = 1 min WRONG
-    ;BEQ nextSubLevel
-    ;ADC #$01
-    ;STA levelCounter
-    ;BVC endUpdateLevel
-nextSubLevel
     LDA #$00
     STA levelCounter
     LDA currSubLevel
-    CMP #$03
+    CMP #$02
     BEQ nextLevel
     ADC #$01
     STA currSubLevel
+    JSR nextLevelHandler
+    BVC endUpdateLevel
+nextLevel
+    LDA #$01
+    STA currSubLevel
+    LDA currLevel
+    CMP #$03
+    BEQ resetLevel
+    LDA currLevel
+    ADC #$01
+    STA currLevel
+    JSR nextLevelHandler
+    BVC endUpdateLevel
+resetLevel
+    LDA #$01
+    STA currLevel
+    JSR nextLevelHandler
+endUpdateLevel
+    RTS
+
+nextLevelHandler            ;functionality for level/sublevels here
 	INC levelcolor			;Increments levelcolor incrementer
 	LDA levelcolor
 	CMP #$07
@@ -655,22 +685,6 @@ nextSubLevel
 	LDA #$01
 	STA levelcolor
 noresetc
-    JSR nextLevelHandler
-    BVC endUpdateLevel
-nextLevel                   ;incs by two for reasons...
-    LDA #$01
-    STA currSubLevel
-    ;LDA currLevel
-    ;CMP #$05
-    ;BEQ gameWon ;place somewhere to end the game
-    LDA currLevel
-    ADC #$01
-    STA currLevel
-    JSR nextLevelHandler
-endUpdateLevel
-    RTS
-
-nextLevelHandler ;functionality for level/sublevels here
     RTS
 	;begins at 1FE4, will later run from memory locations for score/level numbers.
 	;Need to write int to output conversion method before
