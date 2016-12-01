@@ -957,7 +957,7 @@ inputval
 	.BYTE
 
 ship
-    .BYTE   $00,$18,$24,$F3,$7E,$3C,$00,$00 ;[0][0]
+    .BYTE   $00,$18,$24,$F3,$7E,$3C,$00,$00
 
 genvalue
     .BYTE #$07
