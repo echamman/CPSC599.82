@@ -33,7 +33,8 @@ gameloop            ;check input,update data, draw data to screen
 	JSR filltop
 	JSR fillbottom
 	JSR hitdetect	;Check if hit
-	;JSR printScoreLevel
+	JSR updateScore
+	JSR printScoreLevel
 	JSR waitTurn
     ;JSR clearscreen
     LDA #$01
@@ -769,25 +770,122 @@ dfnextcol
 dfdone
     RTS
 
+updateScore
+    LDA currTurn
+    CMP #$0A    ;compare to 10
+    BEQ addOneToScore
+    ADC #$01
+    STA currTurn
+    BVC updateScoreEnd
+addOneToScore
+    LDA #$00
+    STA currTurn
+    LDA currScoreOnes
+    CMP #$09
+    BEQ addTenToScore
+    ADC #$01
+    STA currScoreOnes
+    BVC updateScoreEnd
+addTenToScore
+    LDA #$00
+    STA currScoreOnes
+    LDA currScoreTens
+    CMP #$09
+    BEQ addHunToScore
+    ADC #$01
+    STA currScoreTens
+    BVC updateScoreEnd
+addHunToScore
+    LDA #$00
+    STA currScoreTens
+    LDA currScoreHuns
+    CMP #$09
+    BEQ addThouToScore
+    ADC #$01
+    STA currScoreHuns
+    JSR updateLevel
+    BVC updateScoreEnd
+addThouToScore
+    LDA #$00
+    STA currScoreHuns
+    LDA currScoreThous
+    CMP #$09
+    BEQ addTThousToScore
+    ADC #$01
+    STA currScoreThous
+    BVC updateScoreEnd
+addTThousToScore
+    LDA #$00
+    STA currScoreThous
+    LDA currScoreTThous
+    CMP #$09
+    BEQ updateScoreEnd
+    ADC #$01
+    STA currScoreTThous
+updateScoreEnd
+    RTS
+
+updateLevel
+    ;LDA levelCounter
+    ;CMP #$F0            ;120 loops = 360 jiffies = 1 min WRONG
+    ;BEQ nextSubLevel
+    ;ADC #$01
+    ;STA levelCounter
+    ;BVC endUpdateLevel
+nextSubLevel
+    LDA #$00
+    STA levelCounter
+    LDA currSubLevel
+    CMP #$03
+    BEQ nextLevel
+    ADC #$01
+    STA currSubLevel
+    JSR nextLevelHandler
+    BVC endUpdateLevel
+nextLevel                   ;incs by two for reasons...
+    LDA #$01
+    STA currSubLevel
+    ;LDA currLevel
+    ;CMP #$05
+    ;BEQ gameWon ;place somewhere to end the game
+    LDA currLevel
+    ADC #$01
+    STA currLevel
+    JSR nextLevelHandler
+endUpdateLevel
+    RTS
+
+nextLevelHandler ;functionality for level/sublevels here
+    RTS
 	;begins at 1FE4, will later run from memory locations for score/level numbers.
 	;Need to write int to output conversion method before
 printScoreLevel
 	LDA #$13		;S
-	STA $1FE5
+	STA $1FE4
 	LDA #$03		;C
-	STA $1FE6
+	STA $1FE5
 	LDA #$0F		;O
-	STA $1FE7
+	STA $1FE6
 	LDA #$12		;R
-	STA $1FE8
+	STA $1FE7
 	LDA #$05		;E
-	STA $1FE9
-	LDA #$30		;0
+	STA $1FE8
+	CLC
+	LDA currScoreTThous		;0 //currScoreHundredThousands
+	ADC #$30
+	STA $1FEA
+	LDA currScoreThous		;0 //currScoreTenThousands
+	ADC #$30
 	STA $1FEB
-	LDA #$30		;0
-	STA $1FED
+	LDA currScoreHuns		;0 //currScoreOnes
+	ADC #$30
 	STA $1FEC
-	LDA #$30		;0
+	LDA currScoreTens		;0 //currScoreTens
+	ADC #$30
+	STA $1FED
+	LDA currScoreOnes       ;0 //currScoreHuns
+	ADC #$30
+	STA $1FEE
 
 	LDA #$0C		;L
 	STA $1FF0
@@ -799,11 +897,14 @@ printScoreLevel
 	STA $1FF3
 	LDA #$0C		;L
 	STA $1FF4
-	LDA #$31		;1
+	CLC
+	LDA currLevel		;1
+	ADC #$30
 	STA $1FF6
 	LDA #$2D		;-
 	STA $1FF7
-	LDA #$31		;1
+	LDA currSubLevel		;1
+	ADC #$30
 	STA $1FF8
 
 	RTS
@@ -830,12 +931,26 @@ oldy
 
 currTime
 	.BYTE #$00
+currTurn
+    .BYTE #$00
+
+levelCounter
+    .BYTE #$00
+
+currLevel
+    .BYTE #$01
+currSubLevel
+    .BYTE #$01
 
 currScoreOnes
 	.BYTE #$00
 currScoreTens
 	.BYTE #$00
 currScoreHuns
+	.BYTE #$00
+currScoreThous
+	.BYTE #$00
+currScoreTThous
 	.BYTE #$00
 
 inputval
