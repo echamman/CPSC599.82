@@ -29,10 +29,10 @@ gameloop            ;check input,update data, draw data to screen
     JSR checkInput  ;returns user input to Reg Y
 	JSR useInput
 	;JSR updateship  ;draw changes to ship
-    ;JSR updatedata  ;based off Reg Y update certain blocks
+    JSR updatedata  ;based off Reg Y update certain blocks
 	JSR filltop
 	JSR fillbottom
-	;JSR hitdetect	;Check if hit
+	JSR hitdetect	;Check if hit
 	;JSR printScoreLevel
 	JSR waitTurn
     ;JSR clearscreen
@@ -265,25 +265,25 @@ updatedata
     LDX #$01
     LDY #$00
 rfupdate
-    LDA topscreen,x
-    STA topscreen,y
-    LDA bottomscreen,x
-    STA bottomscreen,y
+    LDA topset,x
+    STA topset,y
+    LDA emptyset,x
+    STA emptyset,y
     INX
     INY
-    CPX #$17
+    CPX #$16
     BMI rfupdate
     LDA genvalue
     LDX #$15
-    STA topscreen,x
-    STA bottomscreen,x
-    CMP #$0A
+    ;STA topset,x
+    STA emptyset,x
+    CMP #$0B
     BEQ resetgenvalue
     ADC #$01
     STA genvalue
     BVC updatedone
 resetgenvalue
-    LDA #$01
+    LDA #$04
     STA genvalue
 updatedone
     RTS
@@ -435,27 +435,39 @@ drawship11
 	RTS
 
 hitdetect
-	LDY shipcoY				;deciding which offset to ceheck based on Y
-	CPY #$08
-	BMI detectTop
-	JMP detectBottom
-detectTop					;Hit detection works by checking the square the ship is in after
-	LDX shipco0				;drawing the roof and floor
+	LDX shipcoX			;Load X
+	LDY shipcoY			;Load Y
+	CPY #$0B
+	BMI hitTop		;If Y is in top half, jump there
+	CLC
+	LDA shipcoY
+	SBC #$0A		;Else subtract 10 from Y so it is a usable value
+	TAY
 	LDA #$00
-	EOR $9600,x				;Checks color of the block, so if the square that the ship is in
-	BEQ hitTrue				;is black, there was no hit
-	LDA #$00				;Checks this by XORing the square with 0
-	EOR $9600,x
-	BEQ hitTrue
+	BEQ hitBottom
+hitTop
+	LDA topset,x
+	STA internum
+	CPY internum
+	BMI hitTrue
+	LDA emptyset,x
+	STA internum
+	CPY internum
+	BPL hitTrue
 	RTS
-detectBottom
-	LDX shipco1
-	LDA #$00
-	EOR $96F2,x
-	BEQ hitTrue
-	LDA #$00
-	EOR $96F2,x
-	BEQ hitTrue
+hitBottom
+	LDA #$0C
+	CLC
+	SBC emptyset,x
+	STA internum
+	CPY internum
+	BMI hitTrue
+	LDA #$0C
+	CLC
+	SBC topset,x
+	STA internum
+	CPY internum
+	BPL hitTrue
 	RTS
 hitTrue
 	JMP gameOver			;Jump to the end of game screen
@@ -835,7 +847,7 @@ ship
     .BYTE   $00,$F8,$24,$36,$01,$01,$FE,$00 ;[0][1]
 
 genvalue
-    .BYTE #$03
+    .BYTE #$07
 
 topscreen	;22 bytes showing the depth of the roof for each spot ($00 = single depth - $0B = 11 depth)
 	.BYTE $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
@@ -851,7 +863,7 @@ topset	;gives information on how many blocks to draw on the top
 
 emptyset	;gives information on how many empty blocks to draw after top. Val must be bigger than corresponding topset val
 	.BYTE $07, $07, $07, $07, $07, $07, $07, $07, $07, $07, $07
-    .BYTE $04, $05, $06, $07, $08, $09, $0A, $0B, $03, $04, $05
+    .BYTE $07, $07, $07, $07, $07, $07, $07, $07, $07, $07, $07
 
 ;ycoord
     ;.WORD $
@@ -866,7 +878,7 @@ shipcoX					;X position of ship
 	.BYTE #$00
 
 shipcoY					;Y position of ship
-	.BYTE #$05
+	.BYTE #$12
 
 depth
     .WORD $00
