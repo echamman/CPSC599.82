@@ -27,14 +27,16 @@ stub	.BYTE #$0	;New line
     JSR intro
 gameloop            ;check input,update data, draw data to screen
     JSR checkInput  ;returns user input to Reg Y
-	JSR updateship  ;draw changes to ship
+	JSR useInput
+	;JSR updateship  ;draw changes to ship
     JSR updatedata  ;based off Reg Y update certain blocks
-	JSR drawroof
-	JSR drawfloor
-	;JSR hitdetect	;Check if hit
+	JSR filltop
+	JSR fillbottom
+	JSR hitdetect	;Check if hit
+	JSR updateScore
 	JSR printScoreLevel
 	JSR waitTurn
-    JSR clearscreen
+    ;JSR clearscreen
     LDA #$01
     BNE gameloop
 
@@ -170,6 +172,45 @@ endInput
 	STX $9122		;else restore VIA#2
 	RTS
 
+useInput
+	CPY #$02
+	BNE tryDown
+	LDA shipcoY
+	CMP #$00
+	BEQ endUse
+	DEC shipcoY
+	LDA #$00
+	BEQ endUse
+tryDown
+	CPY #$03
+	BNE tryLeft
+	LDA shipcoY
+	CMP #$15
+	BEQ endUse
+	INC shipcoY
+	LDA #$00
+	BEQ endUse
+tryLeft
+	CPY #$04
+	BNE tryRight
+	LDA shipcoX
+	CMP #$00
+	BEQ endUse
+	DEC shipcoX
+	LDA #$00
+	BEQ endUse
+tryRight
+	CPY #$05
+	BNE endUse
+	LDA shipcoX
+	CMP #$15
+	BEQ endUse
+	INC shipcoX
+	LDA #$00
+	BEQ endUse
+endUse
+	RTS
+
 setchars             ;Store the character set in RAM
     LDA #$FF        ;Tell vic to read chars from RAM
     STA $9005       ;poke 36869,255
@@ -225,32 +266,32 @@ updatedata
     LDX #$01
     LDY #$00
 rfupdate
-    LDA topscreen,x
-    STA topscreen,y
-    LDA bottomscreen,x
-    STA bottomscreen,y
+    LDA topset,x
+    STA topset,y
+    LDA emptyset,x
+    STA emptyset,y
     INX
     INY
-    CPX #$17
+    CPX #$16
     BMI rfupdate
     LDA genvalue
     LDX #$15
-    STA topscreen,x
-    STA bottomscreen,x
-    CMP #$0A
+    ;STA topset,x
+    STA emptyset,x
+    CMP #$0B
     BEQ resetgenvalue
     ADC #$01
     STA genvalue
     BVC updatedone
 resetgenvalue
-    LDA #$01
+    LDA #$04
     STA genvalue
 updatedone
     RTS
 
 updateship                ;this just draws our ship
 	LDY shipcoY				;deciding which drawing function to call based on Y
-	CPY #$08				;we need 2 because we cannot use 1 offset for the whole screen
+	CPY #$09				;we need 2 because we cannot use 1 offset for the whole screen
 	BMI drawship0
 	JMP drawship1
 
@@ -265,9 +306,9 @@ drawship0
 clearship0
     LDA #$20
 	LDX shipco0			;Clearing ship based on offset, done before
-    STA $1E16,x			;processing input
+    STA $1E00,x			;processing input
     LDA #$20
-	STA $1E17,x
+	STA $1E01,x
 
 updates
 	;This is called immediately after getinput, so the Y value contains the direction
@@ -313,9 +354,12 @@ updateright
 drawship01
 	LDA #$22
 	LDX shipco0				;reprint ship based on offset
-	STA $1E16,x
+	STA $1E00,x
 	LDA #$23
-	STA $1E17,x
+	STA $1E01,x
+	LDA #$01				;Change char to white
+	STA $9600,x
+	STA $9601,x
 	RTS
     ;memory the spaceship
     ;print it to screen.
@@ -331,9 +375,9 @@ drawship1
 clearship1
 	LDA #$20
 	LDX shipco1			;Clears ship based on offset, must be one before
-	STA $1EC6,x			;processing input, because the process alters the offset
+	STA $1EB0,x			;processing input, because the process alters the offset
 	LDA #$20
-	STA $1EC7,x
+	STA $1EB1,x
 
 	;This is called immediately after getinput, so the Y value contains the direction
 	LDY inputval
@@ -344,7 +388,7 @@ clearship1
 	SBC #$16				;it is then in that half
 	STA shipco1				;Also adds the appropriate amount to the offset to position the ship
 	LDA shipcoY
-	CMP #$09
+	CMP #$08
 	BPL tempskip
 	JMP drawship0
 tempskip
@@ -383,36 +427,244 @@ updateright1
 drawship11
 	LDA #$22
 	LDX shipco1				;Redraws ship based on offset
-	STA $1EC6,x
+	STA $1EF2,x
 	LDA #$23
-	STA $1EC7,x
+	STA $1EF3,x
+	LDA #$01				;Change char to white
+	STA $96F2,x
+	STA $96F3,x
 	RTS
 
 hitdetect
-	LDY shipcoY				;deciding which offset to ceheck based on Y
-	CPY #$08
-	BMI detectTop
-	JMP detectBottom
-detectTop					;Hit detection works by checking the square the ship is in after
-	LDX shipco0				;drawing the roof and floor
+	LDX shipcoX			;Load X
+	LDY shipcoY			;Load Y
+	CPY #$0B
+	BMI hitTop		;If Y is in top half, jump there
+	CLC
+	LDA shipcoY
+	SBC #$0A		;Else subtract 10 from Y so it is a usable value
+	TAY
 	LDA #$00
-	EOR $1E16,x				;Roof and floor clear all squares when drawing, so if the square that the ship is in
-	BEQ hitTrue				;is empty, there was no hit
-	LDA #$00				;Checks this by XORing the square with 0
-	EOR $1E17,x
-	BEQ hitTrue
+	BEQ hitBottom
+hitTop
+	LDA topset,x
+	STA internum
+	CPY internum
+	BMI hitTrue
+	LDA emptyset,x
+	STA internum
+	CPY internum
+	BPL hitTrue
 	RTS
-detectBottom
-	LDX shipco1
-	LDA #$00
-	EOR $1EC6,x
-	BEQ hitTrue
-	LDA #$00
-	EOR $1EC7,x
-	BEQ hitTrue
+hitBottom
+	LDA #$0C
+	CLC
+	SBC emptyset,x
+	STA internum
+	CPY internum
+	BMI hitTrue
+	LDA #$0C
+	CLC
+	SBC topset,x
+	STA internum
+	CPY internum
+	BPL hitTrue
 	RTS
 hitTrue
 	JMP gameOver			;Jump to the end of game screen
+
+colortop	;Changes color of char printed, Y val should be internum+1, X is internum+
+	CPX shipcoX
+	BNE blackt
+	CPY shipcoY
+	BEQ whitet
+blackt
+	LDA topset,x
+	STA internum
+	CPY internum
+	BMI whitet			;Check if Y is above tunnel
+	LDA emptyset,x
+	STA internum
+	CPY internum
+	BPL whitet			;Check if Y is below tunnel
+	TXA
+	STY internum
+	PHA
+	JSR	mul22
+	PLA
+	CLC
+	ADC internum
+	TAX
+	LDA #$00
+	STA $9600,x			;Print character as
+	RTS
+whitet
+	TXA
+	STY internum
+	PHA
+	JSR mul22
+	PLA
+	CLC
+	ADC internum
+	TAX
+	LDA #$01
+	STA $9600,x			;Print character as
+	RTS
+
+colorbottom	;Changes color of char printed
+	CPX shipcoX
+	BNE blackb
+	LDA shipcoY
+	CMP #$0B
+	BMI blackb
+	CLC
+	SBC #$0A
+	STA internum
+	CPY internum
+	BEQ whiteb
+blackb
+	LDA #$0C
+	CLC
+	SBC emptyset,x
+	STA internum
+	CPY internum
+	BMI whiteb			;Check if Y is above tunnel
+	LDA #$0B
+	SBC topset,x
+	STA internum
+	CPY internum
+	BPL whiteb			;Check if Y is below tunnel
+	TXA
+	STY internum
+	PHA
+	JSR	mul22
+	PLA
+	CLC
+	ADC internum
+	TAX
+	LDA #$00
+	STA $96F2,x			;Print character as black
+	RTS
+whiteb
+	TXA
+	STY internum
+	PHA
+	JSR mul22
+	PLA
+	CLC
+	ADC internum
+	TAX
+	LDA #$01
+	STA $96F2,x			;Print character as white
+	RTS
+
+filltop		;Fills top half with columns, prints either black or white block depending on data
+	LDX #$00 			;Length along top moved
+	LDY #$00			;Depth of columns
+fillcol
+	TXA
+	PHA
+	TYA
+	PHA
+	JSR colortop
+	PLA
+	TAY
+	PLA
+	TAX
+	STY depth			;Keep Y in the depth for later use
+	STY internum
+	TXA
+	PHA					;Push X to stack
+	JSR mul22
+	PLA					;Pull X
+	TAX
+	CLC
+	ADC internum		;Adding the x value to the y val for offset
+	PHA					;Push this to stack
+	LDY depth
+	CPX shipcoX
+	BNE drawBlock
+	CPY shipcoY
+	BEQ drawship
+drawBlock
+	PLA
+	TAY
+	LDA #$00			;;Block to print
+	STA $1E00,y			;Print at offset
+	LDA #$00
+	BEQ cont
+drawship
+	PLA
+	TAY
+	LDA #$23
+	STA $1E00,y			;Print at offset
+cont
+	LDY depth
+	INY
+	CPY #$0B			;Compare Y to 11
+	BMI fillcol
+	INX
+	LDY #$00
+	CPX #$16			;Compare x to 23
+	BMI fillcol
+	RTS
+
+fillbottom
+	LDX #$00 			;Length along top moved
+	LDY #$00			;Depth of columns
+fillcolb
+	TXA
+	PHA
+	TYA
+	PHA
+	JSR colorbottom
+	PLA
+	TAY
+	PLA
+	TAX
+	STY depth			;Keep Y in the depth for later use
+	STY internum
+	TXA
+	PHA					;Push X to stack
+	JSR mul22
+	PLA					;Pull X
+	TAX
+	CLC
+	ADC internum		;Adding the x value to the y val for offset
+	PHA					;Push this to stack
+	LDY depth
+	CPX shipcoX
+	BNE drawBlockb
+	LDA shipcoY
+	CMP #$0B
+	BMI drawBlockb
+	CLC
+	SBC #$0A
+	STA internum
+	CPY internum
+	BEQ drawshipb
+drawBlockb
+	PLA
+	TAY
+	LDA #$00			;;Block to print
+	STA $1EF2,y			;Print at offset
+	LDA #$00
+	BEQ contb
+drawshipb
+	PLA
+	TAY
+	LDA #$23
+	STA $1EF2,y			;Print at offset
+contb
+	LDY depth
+	INY
+	CPY #$0B			;Compare Y to 11
+	BMI fillcolb
+	INX
+	LDY #$00
+	CPX #$16			;Compare x to 23
+	BMI fillcolb
+	RTS
 
 drawroof
     LDX #$00            ;Depth
@@ -428,7 +680,7 @@ drnextcol
     CPY #$16            ;compare y with 22 outtabounds
     BEQ drnextrow        ;if equal to 22 then set y=0, x++
 
-    LDA topscreen,y     ;load the contents of the element of topscreen[y]
+    LDA #$0B            ;loads depth 11
     CMP depth           ;compare A with depth
     BMI drnextcol        ;if depth > A then try next element
                 ;this chunck is prep for mul22
@@ -478,7 +730,7 @@ mul22                   ;assume input is y. F(y) = y*22 = x1 + x2 + x3
     RTS
 
 drawfloor
-    LDX #$0C            ;Depth
+    LDX #$0B            ;Depth
 dfnextrow
     DEX    ;increase depth
     CPX #$00            ;compare depth and elem to 11,21
@@ -512,31 +764,128 @@ dfnextcol
     ADC oldy
     TAY
     LDA #$00            ;else depth <= A then draw; store block in A
-    STA $1EF2,y;+((depth-1)*22)         ;print block at y; will need to
+    STA $1E16,y;+((depth-1)*22)         ;print block at y; will need to
     LDY oldy
     JMP dfnextcol       ;to next elem
 dfdone
     RTS
 
+updateScore
+    LDA currTurn
+    CMP #$0A    ;compare to 10
+    BEQ addOneToScore
+    ADC #$01
+    STA currTurn
+    BVC updateScoreEnd
+addOneToScore
+    LDA #$00
+    STA currTurn
+    LDA currScoreOnes
+    CMP #$09
+    BEQ addTenToScore
+    ADC #$01
+    STA currScoreOnes
+    BVC updateScoreEnd
+addTenToScore
+    LDA #$00
+    STA currScoreOnes
+    LDA currScoreTens
+    CMP #$09
+    BEQ addHunToScore
+    ADC #$01
+    STA currScoreTens
+    BVC updateScoreEnd
+addHunToScore
+    LDA #$00
+    STA currScoreTens
+    LDA currScoreHuns
+    CMP #$09
+    BEQ addThouToScore
+    ADC #$01
+    STA currScoreHuns
+    JSR updateLevel
+    BVC updateScoreEnd
+addThouToScore
+    LDA #$00
+    STA currScoreHuns
+    LDA currScoreThous
+    CMP #$09
+    BEQ addTThousToScore
+    ADC #$01
+    STA currScoreThous
+    BVC updateScoreEnd
+addTThousToScore
+    LDA #$00
+    STA currScoreThous
+    LDA currScoreTThous
+    CMP #$09
+    BEQ updateScoreEnd
+    ADC #$01
+    STA currScoreTThous
+updateScoreEnd
+    RTS
+
+updateLevel
+    ;LDA levelCounter
+    ;CMP #$F0            ;120 loops = 360 jiffies = 1 min WRONG
+    ;BEQ nextSubLevel
+    ;ADC #$01
+    ;STA levelCounter
+    ;BVC endUpdateLevel
+nextSubLevel
+    LDA #$00
+    STA levelCounter
+    LDA currSubLevel
+    CMP #$03
+    BEQ nextLevel
+    ADC #$01
+    STA currSubLevel
+    JSR nextLevelHandler
+    BVC endUpdateLevel
+nextLevel                   ;incs by two for reasons...
+    LDA #$01
+    STA currSubLevel
+    ;LDA currLevel
+    ;CMP #$05
+    ;BEQ gameWon ;place somewhere to end the game
+    LDA currLevel
+    ADC #$01
+    STA currLevel
+    JSR nextLevelHandler
+endUpdateLevel
+    RTS
+
+nextLevelHandler ;functionality for level/sublevels here
+    RTS
 	;begins at 1FE4, will later run from memory locations for score/level numbers.
 	;Need to write int to output conversion method before
 printScoreLevel
 	LDA #$13		;S
-	STA $1FE5
+	STA $1FE4
 	LDA #$03		;C
-	STA $1FE6
+	STA $1FE5
 	LDA #$0F		;O
-	STA $1FE7
+	STA $1FE6
 	LDA #$12		;R
-	STA $1FE8
+	STA $1FE7
 	LDA #$05		;E
-	STA $1FE9
-	LDA #$30		;0
+	STA $1FE8
+	CLC
+	LDA currScoreTThous		;0 //currScoreHundredThousands
+	ADC #$30
+	STA $1FEA
+	LDA currScoreThous		;0 //currScoreTenThousands
+	ADC #$30
 	STA $1FEB
-	LDA #$30		;0
+	LDA currScoreHuns		;0 //currScoreOnes
+	ADC #$30
 	STA $1FEC
-	LDA #$30		;0
+	LDA currScoreTens		;0 //currScoreTens
+	ADC #$30
 	STA $1FED
+	LDA currScoreOnes       ;0 //currScoreHuns
+	ADC #$30
+	STA $1FEE
 
 	LDA #$0C		;L
 	STA $1FF0
@@ -548,11 +897,14 @@ printScoreLevel
 	STA $1FF3
 	LDA #$0C		;L
 	STA $1FF4
-	LDA #$31		;1
+	CLC
+	LDA currLevel		;1
+	ADC #$30
 	STA $1FF6
 	LDA #$2D		;-
 	STA $1FF7
-	LDA #$31		;1
+	LDA currSubLevel		;1
+	ADC #$30
 	STA $1FF8
 
 	RTS
@@ -579,12 +931,26 @@ oldy
 
 currTime
 	.BYTE #$00
+currTurn
+    .BYTE #$00
+
+levelCounter
+    .BYTE #$00
+
+currLevel
+    .BYTE #$01
+currSubLevel
+    .BYTE #$01
 
 currScoreOnes
 	.BYTE #$00
 currScoreTens
 	.BYTE #$00
 currScoreHuns
+	.BYTE #$00
+currScoreThous
+	.BYTE #$00
+currScoreTThous
 	.BYTE #$00
 
 inputval
@@ -596,7 +962,7 @@ ship
     .BYTE   $00,$F8,$24,$36,$01,$01,$FE,$00 ;[0][1]
 
 genvalue
-    .BYTE #$03
+    .BYTE #$07
 
 topscreen	;22 bytes showing the depth of the roof for each spot ($00 = single depth - $0B = 11 depth)
 	.BYTE $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
@@ -605,6 +971,14 @@ topscreen	;22 bytes showing the depth of the roof for each spot ($00 = single de
 bottomscreen	;22 bytes showing the depth of the floor for each spot ($0B = single height - $00 = 11 height)
 	.BYTE $0B, $0B, $0B, $0B, $0B, $0B, $0B, $0B, $0B, $0B, $0B
 	.BYTE $0B, $0B, $0B, $0B, $0B, $0B, $0B, $0B, $0B, $0B, $01
+
+topset	;gives information on how many blocks to draw on the top
+    .BYTE $02, $02, $02, $02, $02, $02, $02, $02, $02, $02, $02
+    .BYTE $02, $02, $02, $02, $02, $02, $02, $02, $02, $02, $02
+
+emptyset	;gives information on how many empty blocks to draw after top. Val must be bigger than corresponding topset val
+	.BYTE $07, $07, $07, $07, $07, $07, $07, $07, $07, $07, $07
+    .BYTE $07, $07, $07, $07, $07, $07, $07, $07, $07, $07, $07
 
 ;ycoord
     ;.WORD $
@@ -619,10 +993,23 @@ shipcoX					;X position of ship
 	.BYTE #$00
 
 shipcoY					;Y position of ship
-	.BYTE #$00
+	.BYTE #$12
 
 depth
     .WORD $00
+topoffset
+    .WORD $00
+emptyoffset
+    .WORD $00
+
+pickup
+	.BYTE $3C,$42,$99,$BD,$BD,$99,$42,$3C
+obstacle
+	.BYTE $FF,$FF,$7E,$7E,$3C,$3C,$18,$18
+wall
+	.BYTE $FF,$3C,$18,$18,$18,$18,$3C,$FF
+
+
 
 internum
-    .BYTE $00,$00,$00
+    .BYTE $00,$00,$00,$00,$00
