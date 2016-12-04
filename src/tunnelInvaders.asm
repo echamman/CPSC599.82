@@ -698,6 +698,7 @@ addTenToScore
     BEQ addHunToScore
     ADC #$01
     STA currScoreTens
+    JSR updateLevel     ;For Testing use
     BVC updateScoreEnd
 addHunToScore
     LDA #$00
@@ -707,7 +708,7 @@ addHunToScore
     BEQ addThouToScore
     ADC #$01
     STA currScoreHuns
-    JSR updateLevel     ;change level every 100 points
+    ;JSR updateLevel     ;change level every 100 points
     BVC updateScoreEnd
 addThouToScore
     LDA #$00
