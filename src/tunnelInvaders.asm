@@ -286,18 +286,17 @@ rfupdate
     INY
     CPX #$16
     BMI rfupdate
-    LDA genvalue
-    LDX #$15
-    ;STA topset,x
-    STA emptyset,x
-    CMP #$0B
-    BEQ resetgenvalue
-    ADC #$01
-    STA genvalue
-    BVC updatedone
+    ;LDA genvalue
+    ;LDX #$15
+    ;STA emptyset,x
+    ;CMP #$0B
+    ;BEQ resetgenvalue
+    ;ADC #$01
+    ;STA genvalue
+    ;BVC updatedone
 resetgenvalue
-    LDA #$04
-    STA genvalue
+    ;LDA #$04
+    ;STA genvalue
 updatedone
     RTS
 
@@ -739,7 +738,7 @@ printScoreLevel
 
 waitTurn
 	LDA $00A2		;load least sig byte of system clock
-	ADC #$03
+	ADC #$02
 	STA currTime
 hold
 	LDA $00A2		;load least sig byte of system clock
