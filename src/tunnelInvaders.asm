@@ -26,12 +26,13 @@ stub	.BYTE #$0	;New line
     JSR setchars     ;Loads charset from ROM to RAM
     JSR intro
 gameloop            ;check input,update data, draw data to screen
+    JSR hitdetect	;Check if hit
     JSR checkInput  ;returns user input to Reg Y
 	JSR useInput    ;needs comments in function
+    JSR hitdetect	;Check if hit
 	JSR musicLoop   ;da beats!
     JSR updatedata  ;based off Reg Y update certain blocks -> needs comments in function
 	JSR fillscreen
-	;JSR hitdetect	;Check if hit
 	JSR updateScore
 	JSR printScoreLevel
 	JSR waitTurn
@@ -767,7 +768,7 @@ addTenPickupToScore
 
 updateScore
     LDA currTurn
-    CMP #$0A    ;compare to 10
+    CMP #$02    ;compare to 2s
     BEQ addOneToScore
     ADC #$01
     STA currTurn
@@ -790,7 +791,6 @@ addTenToScore
     BEQ addHunToScore
     ADC #$01
     STA currScoreTens
-	JSR updateLevel     ;For Testing use
     BVC updateScoreEnd
 addHunToScore
     LDA #$00
@@ -800,7 +800,7 @@ addHunToScore
     BEQ addThouToScore
     ADC #$01
     STA currScoreHuns
-    ;JSR updateLevel     ;change level every 100 points
+    JSR updateLevel     ;change level every 100 points
     BVC updateScoreEnd
 addThouToScore
     LDA #$00
