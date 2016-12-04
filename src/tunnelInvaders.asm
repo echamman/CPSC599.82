@@ -31,7 +31,7 @@ gameloop            ;check input,update data, draw data to screen
 	JSR musicLoop   ;da beats!
     JSR updatedata  ;based off Reg Y update certain blocks -> needs comments in function
 	JSR fillscreen
-	JSR hitdetect	;Check if hit
+	;JSR hitdetect	;Check if hit
 	JSR updateScore
 	JSR printScoreLevel
 	JSR waitTurn
@@ -247,8 +247,8 @@ musicLoop
 musicLoop1
     INX
     STX musicLoopOffset
-    RTS    
-    
+    RTS
+
 useInput
 tryUp
 	CPY #$02
@@ -320,26 +320,35 @@ resetgenvalue
     ;STA genvalue
 updatedone
     RTS
-    
+
 algomain
+	LDA upFlag		;Only update every second loop
+	CMP #$02
+	BMI noUpdate
+	LDA #$00
+	STA upFlag
     LDA currLevel
     CMP #$01
     BNE checkAlgo2
-    JSR algo1
+    JSR algo2
 checkAlgo2
     CMP #$02
     BNE checkAlgo3
     JMP algo2
 checkAlgo3
     JMP algo3
-    
+noUpdate
+	INC upFlag
+	RTS
+
+
 algo1
     LDX #$14
     LDA topset,x
     CLC
     CMP #$02
     BMI setDirectionDown
-    CMP #$05
+    CMP #$07
     BPL setDirectionUp
     BVC algo1Gen
 setDirectionDown
@@ -360,7 +369,7 @@ algo1Gen
     LDX #$15
     STA topset,x
     CLC
-    ADC #$08
+    ADC #$06
     STA emptyset,x
     BVC algo1done
 algo1GenDown
@@ -370,14 +379,77 @@ algo1GenDown
     LDX #$15
     STA topset,x
     CLC
-    ADC #$08
-    STA emptyset,x    
+    ADC #$06
+    STA emptyset,x
 algo1done
     RTS
-    
+
 algo2
-    RTS
-    
+	LDX #$14
+	LDA topset,x
+	CLC
+	CMP #$02
+	BMI setDirectionDown2
+	CMP #$07
+	BPL setDirectionUp2
+	BVC algo2Gen
+setDirectionDown2
+	LDA #$01
+	STA drawDirection
+	BVC algo2Gen
+setDirectionUp2
+	LDA #$00
+	STA drawDirection
+	BVC algo2Gen
+algo2Gen
+	LDA drawDirection
+	CMP #$01
+	BEQ algo2GenDown
+	LDA topset,x
+	SEC
+	SBC currSubLevel
+	LDX #$15
+	STA topset,x
+	JSR getrng				;0 means add 6, 1 means add 4
+	LDX #$15
+	CPY #$01
+	BEQ add4
+	LDA topset,x
+	CLC
+	ADC #$06
+	STA emptyset,x
+	BVC algo2done
+add4
+	LDA topset,x
+	CLC
+	ADC #$04
+	STA emptyset,x
+	BVC algo2done
+algo2GenDown
+	LDA topset,x
+	CLC
+	ADC currSubLevel
+	LDX #$15
+	STA topset,x
+	JSR getrng
+	LDX #$15
+	CPY #$01
+	BEQ add4d
+	LDA topset,x
+	CLC
+	ADC #$06
+	LDX #$15
+	STA emptyset,x
+	BVC algo2done
+add4d
+	LDA topset,x
+	CLC
+	ADC #$04
+	LDX #$15
+	STA emptyset,x
+algo2done
+	RTS
+
 algo3
     RTS
 
@@ -698,7 +770,7 @@ addTenToScore
     BEQ addHunToScore
     ADC #$01
     STA currScoreTens
-    JSR updateLevel     ;For Testing use
+	JSR updateLevel     ;For Testing use
     BVC updateScoreEnd
 addHunToScore
     LDA #$00
@@ -831,6 +903,19 @@ hold
 	BNE hold
 	RTS
 
+getrng
+	LDX currScoreOnes
+	LDA $00A2
+rngloop
+	ADC musicLoopOffset
+	ADC $00A2
+	DEX
+	CMP #$01
+	BMI rngloop
+	AND #$01
+	TAY
+	RTS
+
 ;=============================================================================
 ;DATA
     org $1800        ;dec  6144
@@ -860,7 +945,7 @@ currScoreThous
 	.BYTE $00
 currScoreTThous
 	.BYTE $00
-    
+
 drawDirection
     .BYTE $01
 
@@ -869,6 +954,9 @@ ship
 
 ;genvalue            ;seed for tunnel gen
     ;.BYTE #$07
+
+upFlag
+	.BYTE $00
 
 topset	;gives information on how many blocks to draw on the top
     .BYTE $02, $02, $02, $02, $02, $02, $02, $02, $02, $02, $02
@@ -905,7 +993,7 @@ sonata
     .BYTE $DB,$DB,$00,$00,$DB,$DB,$DF,$DF
     .BYTE $E1,$DF,$D7,$CF,$D1,$CF,$D1,$D1
     .BYTE $00,$D1,$D1,$9F,$93,$00,$93,$00
-    .BYTE $93,$C3,$00,$C9 
+    .BYTE $93,$C3,$00,$C9
 
 musicLoopOffset
     .BYTE $00
