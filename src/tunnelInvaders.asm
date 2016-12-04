@@ -322,20 +322,31 @@ updatedone
     RTS
 
 algomain
+    LDA currLevel
+    CMP #$01
+    BNE checkAlgo2
 	LDA upFlag		;Only update every second loop
 	CMP #$02
 	BMI noUpdate
 	LDA #$00
 	STA upFlag
-    LDA currLevel
-    CMP #$01
-    BNE checkAlgo2
-    JSR algo2
+    JSR algo1
 checkAlgo2
+	LDA currLevel
     CMP #$02
     BNE checkAlgo3
+	LDA upFlag		;Only update every third loop
+	CMP #$02
+	BMI noUpdate
+	LDA #$00
+	STA upFlag
     JMP algo2
 checkAlgo3
+	LDA upFlag		;Only update every fourth loop
+	CMP #$03
+	BMI noUpdate
+	LDA #$00
+	STA upFlag
     JMP algo3
 noUpdate
 	INC upFlag
@@ -390,7 +401,7 @@ algo2
 	CLC
 	CMP #$02
 	BMI setDirectionDown2
-	CMP #$07
+	CMP #$08
 	BPL setDirectionUp2
 	BVC algo2Gen
 setDirectionDown2
@@ -405,9 +416,13 @@ algo2Gen
 	LDA drawDirection
 	CMP #$01
 	BEQ algo2GenDown
+	JSR getrng
+	STY internum
 	LDA topset,x
 	SEC
 	SBC currSubLevel
+	SEC
+	SBC internum
 	LDX #$15
 	STA topset,x
 	JSR getrng				;0 means add 6, 1 means add 4
@@ -422,13 +437,18 @@ algo2Gen
 add4
 	LDA topset,x
 	CLC
-	ADC #$04
+	ADC #$05
 	STA emptyset,x
 	BVC algo2done
 algo2GenDown
+	JSR getrng
+	STY internum
+	LDX #$15
 	LDA topset,x
 	CLC
 	ADC currSubLevel
+	CLC
+	ADC internum
 	LDX #$15
 	STA topset,x
 	JSR getrng
@@ -444,7 +464,7 @@ algo2GenDown
 add4d
 	LDA topset,x
 	CLC
-	ADC #$04
+	ADC #$05
 	LDX #$15
 	STA emptyset,x
 algo2done
@@ -904,13 +924,13 @@ hold
 	RTS
 
 getrng
-	LDX currScoreOnes
+	LDY currScoreOnes
 	LDA $00A2
 rngloop
 	ADC musicLoopOffset
 	ADC $00A2
-	DEX
-	CMP #$01
+	DEY
+	CPY #$01
 	BMI rngloop
 	AND #$01
 	TAY
