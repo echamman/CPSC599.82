@@ -41,6 +41,9 @@ gameloop            ;check input,update data, draw data to screen
 gameOver
 	JSR clearscreen
 	LDA #$0
+gameOver1
+    LDA #$00
+    STA $900E
 	BEQ gameOver
 
 intro
@@ -322,7 +325,7 @@ algomain
     LDA currLevel
     CMP #$01
     BNE checkAlgo2
-    JMP algo1
+    JSR algo1
 checkAlgo2
     CMP #$02
     BNE checkAlgo3
@@ -332,21 +335,50 @@ checkAlgo3
     
 algo1
     LDX #$14
-    LDA topset, x
+    LDA topset,x
+    CMP #$02
+    BMI setDirectionDown
+    CMP #$05
+    BPL setDirectionUp
+    BVC algo1Gen
+setDirectionDown
+    LDA #$01
+    STA drawDirection
+    BVC algo1Gen
+setDirectionUp
+    LDA #$00
+    STA drawDirection
+    BVC algo1Gen
+algo1Gen
+    LDA drawDirection
     CMP #$01
+    BEQ algo1GenDown
+    LDA topset,x
     CLC
-    BEQ subtractFromRoof
+    SBC currSubLevel
+    LDX #$15
+    STA topset,x
+    CLC
+    ADC #$08
+    STA emptyset,x
+    BVC algo1done
+algo1GenDown
+    LDA topset,x
+    CLC
     ADC currSubLevel
     LDX #$15
-    STA topset, x
-    BVC algo1done
-subtractFromRoof
-    SBC currSubLevel
-
-    
+    STA topset,x
+    CLC
+    ADC #$08
+    STA emptyset,x    
 algo1done
     RTS
     
+algo2
+    RTS
+    
+algo3
+    RTS
 
 hitdetect
 	LDX shipcoX			;Load X
@@ -598,6 +630,7 @@ drawshipb
 	STA $1EF2,y			;Print at offset
 contb
 	LDY depth
+    CLC
 	INY
 	CPY #$0B			;Compare Y to 11
 	BMI fillcolb
@@ -701,6 +734,7 @@ updateLevel
     LDA currSubLevel
     CMP #$02
     BEQ nextLevel
+    CLC
     ADC #$01
     STA currSubLevel
     JSR nextLevelHandler
@@ -712,6 +746,7 @@ nextLevel
     CMP #$03
     BEQ resetLevel
     LDA currLevel
+    CLC
     ADC #$01
     STA currLevel
     JSR nextLevelHandler
@@ -823,6 +858,9 @@ currScoreThous
 	.BYTE $00
 currScoreTThous
 	.BYTE $00
+    
+drawDirection
+    .BYTE $01
 
 ship
     .BYTE   $00,$18,$24,$F3,$7E,$3C,$00,$00
