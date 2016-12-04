@@ -336,6 +336,7 @@ checkAlgo3
 algo1
     LDX #$14
     LDA topset,x
+    CLC
     CMP #$02
     BMI setDirectionDown
     CMP #$05
@@ -354,7 +355,7 @@ algo1Gen
     CMP #$01
     BEQ algo1GenDown
     LDA topset,x
-    CLC
+    SEC
     SBC currSubLevel
     LDX #$15
     STA topset,x
@@ -486,7 +487,8 @@ blackb
 	STA internum
 	CPY internum
 	BMI colorb			;Check if Y is above tunnel
-	LDA #$0B
+	LDA #$0C
+    CLC
 	SBC topset,x
 	STA internum
 	CPY internum
@@ -630,7 +632,6 @@ drawshipb
 	STA $1EF2,y			;Print at offset
 contb
 	LDY depth
-    CLC
 	INY
 	CPY #$0B			;Compare Y to 11
 	BMI fillcolb
@@ -865,8 +866,8 @@ drawDirection
 ship
     .BYTE   $00,$18,$24,$F3,$7E,$3C,$00,$00
 
-genvalue            ;seed for tunnel gen
-    .BYTE #$07
+;genvalue            ;seed for tunnel gen
+    ;.BYTE #$07
 
 topset	;gives information on how many blocks to draw on the top
     .BYTE $02, $02, $02, $02, $02, $02, $02, $02, $02, $02, $02
