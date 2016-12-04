@@ -28,7 +28,8 @@ stub	.BYTE #$0	;New line
 gameloop            ;check input,update data, draw data to screen
     JSR checkInput  ;returns user input to Reg Y
 	JSR useInput    ;needs comments in function
-	JSR updatedata  ;based off Reg Y update certain blocks -> needs comments in function
+	JSR musicLoop   ;da beats!
+    JSR updatedata  ;based off Reg Y update certain blocks -> needs comments in function
 	JSR fillscreen
 	JSR hitdetect	;Check if hit
 	JSR updateScore
@@ -180,15 +181,15 @@ checkInput			;Stores direction/fire value to Y register
 	LDX $9122		;load VIA#2 DDR to X
 	STA $9122		;store to VIA#2 DDR
 psf
-	LDA #$00		;zero volume value
-	STA $900E		;store volume
+	;LDA #$00		;zero volume value
+	;STA $900E		;store volume
 	LDA $9111		;load joystick input
 	EOR #$DF		;XOR against bitmask
 	BNE psu			;branch to next check
-	LDA #$0F		;load volume 15
-	STA $900E		;store volume
-	LDA #$F1		;load tone value
-	STA $900A		;store to speaker 1
+	;LDA #$0F		;load volume 15
+	;STA $900E		;store volume
+	;LDA #$F1		;load tone value
+	;STA $900A		;store to speaker 1
 	;LDA #$ED		;load tone value
 	;STA $900B		;store to speaker 2
 	LDY #$01		;1 is stored to Y if fire is held down
@@ -229,6 +230,22 @@ endInput
 	STX $9122		;else restore VIA#2
 	RTS
 
+musicLoop
+  	LDA #$0F		        ;load volume 15
+	STA $900E		        ;store volume                      ;volume
+    LDX musicLoopOffset
+    LDA sonata,X		;load tone value
+	STA $900B		    ;store to speaker 2
+    CPX #$34            ;number of notes
+    BNE musicLoop1
+    LDX #$00
+    STX musicLoopOffset
+    RTS
+musicLoop1
+    INX
+    STX musicLoopOffset
+    RTS    
+    
 useInput
 tryUp
 	CPY #$02
@@ -809,3 +826,15 @@ staticobs                    ;destroable terrain
 
 levelcolor
 	.BYTE $01
+
+sonata
+    .BYTE $00,$C9,$00,$D1,$DB,$D7,$DB,$DB
+    .BYTE $00,$C9,$00,$D1,$DB,$D1,$D7,$00
+    .BYTE $D7,$C9,$00,$C9,$D7,$00,$C3,$00
+    .BYTE $DB,$DB,$00,$00,$DB,$DB,$DF,$DF
+    .BYTE $E1,$DF,$D7,$CF,$D1,$CF,$D1,$D1
+    .BYTE $00,$D1,$D1,$9F,$93,$00,$93,$00
+    .BYTE $93,$C3,$00,$C9 
+
+musicLoopOffset
+    .BYTE $00
