@@ -303,6 +303,7 @@ rfupdate
     INY
     CPX #$16
     BMI rfupdate
+    JSR algomain
     ;LDA genvalue
     ;LDX #$15
     ;STA emptyset,x
@@ -316,6 +317,36 @@ resetgenvalue
     ;STA genvalue
 updatedone
     RTS
+    
+algomain
+    LDA currLevel
+    CMP #$01
+    BNE checkAlgo2
+    JMP algo1
+checkAlgo2
+    CMP #$02
+    BNE checkAlgo3
+    JMP algo2
+checkAlgo3
+    JMP algo3
+    
+algo1
+    LDX #$14
+    LDA topset, x
+    CMP #$01
+    CLC
+    BEQ subtractFromRoof
+    ADC currSubLevel
+    LDX #$15
+    STA topset, x
+    BVC algo1done
+subtractFromRoof
+    SBC currSubLevel
+
+    
+algo1done
+    RTS
+    
 
 hitdetect
 	LDX shipcoX			;Load X
