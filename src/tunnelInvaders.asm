@@ -1200,7 +1200,7 @@ bulletAmmo
     .BYTE $01
 
 powerUpX
-	.BYTE $03
+	.BYTE $14
 powerUpY
 	.BYTE $12
 
