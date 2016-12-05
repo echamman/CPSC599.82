@@ -97,6 +97,10 @@ quitIntro
 	LDA $9111		;load joystick input
 	EOR #$DF		;XOR against fire button bitmask
 	BNE quitIntro		;branch up on no input
+quitIntro2
+    LDA $9111
+    EOR #$FF
+    BNE quitIntro2
     JSR clearscreen
     RTS
 
@@ -1115,7 +1119,7 @@ bulletY
 bulletFlag
     .BYTE $00
 bulletAmmo
-    .BYTE $02
+    .BYTE $01
     
 depth
     .WORD $00
