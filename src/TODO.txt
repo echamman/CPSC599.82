@@ -15,3 +15,8 @@ TODO:
 - Add hit detection for shooting
 - Add other nice effects (ship exaust, explosions)
 - clean up the code
+
+As of December 5th
+- Add walls and bullet hit detection with them
+- Clean up code
+- investigate bugs/lag
