@@ -346,6 +346,7 @@ endUse
 ;3) store col = col + 1
 
 updatedata
+	DEC powerUpX
     LDX #$01
     LDY #$00
     JSR updateBullet
@@ -572,6 +573,7 @@ algo3done
 	RTS
 
 hitdetect
+	JSR powerUpDetect
 	LDX shipcoX			;Load X
 	LDY shipcoY			;Load Y
 	CPY #$0B
@@ -608,6 +610,19 @@ hitBottom
 	RTS
 hitTrue
 	JMP gameOver			;Jump to the end of game screen
+
+powerUpDetect
+	LDA powerUpX
+	CMP shipcoX
+	BNE noPUp
+	LDA powerUpY
+	CMP shipcoY
+	BNE noPUp
+	JSR addPickupToScore
+	LDA #$FF
+	STA powerUpY
+noPUp
+	RTS
 
 bulletdetect
     LDX bulletX         ;load x pos
@@ -1004,11 +1019,11 @@ mul22                   ;assume input is y. F(y) = y*22 = x1 + x2 + x3
 addPickupToScore
     LDX #$00
 pickupScoreLoop
-    JSR addTenPickupToScore
+    JSR addTenPickScore
     INX
-    CPX #$04            ;score value coeffcient on 10
+    CPX #$01            ;score value coeffcient on 10
     BNE pickupScoreLoop
-addTenPickupToScore
+addTenPickScore
     LDA currScoreTens
     CMP #$09
     BEQ addHunToScore
