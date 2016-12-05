@@ -23,23 +23,23 @@ stub	.BYTE #$0	;New line
 	seg code
 	org $100E	;Address 4110, right after stub
 
-    JSR setchars     ;Loads charset from ROM to RAM
-    JSR intro
-gameloop            ;check input,update data, draw data to screen
-    JSR hitdetect	;Check if hit
-    JSR bulletdetect ; check if bullet hit something
-    JSR checkInput  ;returns user input to Reg Y
-	JSR useInput    ;needs comments in function
-  	JSR hitdetect	;Check if hit
-    JSR bulletdetect ; check if bullet hit something
-	JSR musicLoop   ;da beats!
-    JSR updatedata  ;based off Reg Y update certain blocks -> needs comments in function
-	JSR fillscreen
-	JSR updateScore
-	JSR printScoreLevel
-	JSR waitTurn
+    JSR setchars    ;Loads charset from ROM to RAM
+    JSR intro       ;Display intro screen      
+gameloop                    ;main game loop
+    JSR hitdetect	        ;Check if hit
+    JSR bulletdetect        ;check if bullet hit something
+    JSR checkInput          ;returns user input to Reg Y
+	JSR useInput            ;parse user input
+  	JSR hitdetect	        ;Check if hit post data update
+    JSR bulletdetect        ;check if bullet hit something post data update
+	JSR musicLoop           ;da beats!
+    JSR updatedata          ;based off Reg Y update certain blocks -> needs comments in function
+	JSR fillscreen          ;draw info to the screen
+	JSR updateScore         ;update score values based on info
+	JSR printScoreLevel     ;display score/level/ammo info in the footer
+	JSR waitTurn            ;idle until end of game loop time
     LDA #$01
-    BNE gameloop
+    BNE gameloop            ;loop
 
 gameOver
 	JSR clearscreen
@@ -70,13 +70,13 @@ color2	LDA #$1
     JSR clearscreen
 
 hitstart			      ;Prints 'PRESS START' - Appendix E
-	LDA #$10
+	LDA #$10    ;P
 	STA $1EB6
-	LDA #$12
+	LDA #$12    ;R
 	STA $1EB7
-	LDA #$5
+	LDA #$5     ;E
 	STA $1EB8
-	LDA #$13
+	LDA #$13    ;S
 	STA $1EB9
 	LDA #$13
 	STA $1EBA
@@ -248,25 +248,25 @@ endInput
 	RTS
 
 fireBullet
-    LDA bulletFlag
-    CMP #$01
-    BEQ fireBulletEnd
-    LDA bulletAmmoOnes
-    CMP #$00
-    BNE continueToFire  
-    LDA bulletAmmoTens
-    CMP #$00
-    BEQ fireBulletEnd
-    DEC bulletAmmoTens
-    LDA #$0A
-    STA bulletAmmoOnes
+    LDA bulletFlag      
+    CMP #$01            ;check if bullet is onscreen
+    BEQ fireBulletEnd   ;if so skip
+    LDA bulletAmmoOnes  ;else load current ammo
+    CMP #$00            ;compare to zero
+    BNE continueToFire  ;not zero, fire  
+    LDA bulletAmmoTens  ;else, check if value is multiple of 10
+    CMP #$00            
+    BEQ fireBulletEnd   ;if also 0, no ammo left   
+    DEC bulletAmmoTens  ;else dec tens place
+    LDA #$0A            
+    STA bulletAmmoOnes  ;store 10 for immdieiate decriment
 continueToFire
-    DEC bulletAmmoOnes
-    LDA #$01        ;set flag to say bullet is on screen
-    STA bulletFlag
-    LDA shipcoX
-    STA bulletX     ;set original location of bullet
-    LDA shipcoY
+    DEC bulletAmmoOnes  ;dec ammo by 1
+    LDA #$01            
+    STA bulletFlag      ;set flag to 1 to say bullet is on screen
+    LDA shipcoX         ;load current ship location X
+    STA bulletX         ;set original location of bullet
+    LDA shipcoY         ;load current ship location Y
     STA bulletY
 fireBulletEnd
     RTS
