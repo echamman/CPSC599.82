@@ -245,6 +245,10 @@ fireBullet
     LDA bulletFlag
     CMP #$01
     BEQ fireBulletEnd
+    LDA bulletAmmo
+    CMP #$00
+    BEQ fireBulletEnd
+    dec bulletAmmo
     LDA #$01        ;set flag to say bullet is on screen
     STA bulletFlag
     LDA shipcoX     
@@ -1054,6 +1058,8 @@ bulletY
     .BYTE $FF
 bulletFlag
     .BYTE $00
+bulletAmmo
+    .BYTE $02
     
 depth
     .WORD $00
