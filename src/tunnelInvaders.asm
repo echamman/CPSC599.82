@@ -607,9 +607,14 @@ colortop	            ;Changes color of char printed, Y val should be internum+1,
 	BEQ whitet
 bullett
     CPX bulletX
-    BNE blackt
+    BNE powerUpt
     CPY bulletY
     BEQ whitet
+powerUpt
+    CPX powerUpX
+    BNE blackt
+    CPY powerUpY
+    BEQ yellowt
 blackt
 	LDA topset,x
 	STA internum
@@ -654,6 +659,18 @@ colort
 	LDA levelcolor
 	STA $9600,x			;Print character as level color
 	RTS
+yellowt
+	TXA
+	STY internum
+	PHA
+	JSR mul22
+	PLA
+	CLC
+	ADC internum
+	TAX
+	LDA #$07
+	STA $9600,x			;Print character as level color
+	RTS
 
 colorbottom	            ;Changes color of char printed
 	CPX shipcoX
@@ -668,15 +685,26 @@ colorbottom	            ;Changes color of char printed
 	BEQ whiteb
 bulletb
 	CPX bulletX
-	BNE blackb
+	BNE powerUpb
 	LDA bulletY
+	CMP #$0B
+	BMI powerUpb
+	CLC
+	SBC #$0A
+	STA internum
+	CPY internum
+	BEQ whiteb
+powerUpb
+	CPX powerUpX
+	BNE blackb
+	LDA powerUpY
 	CMP #$0B
 	BMI blackb
 	CLC
 	SBC #$0A
 	STA internum
 	CPY internum
-	BEQ whiteb
+	BEQ yellowb
 blackb
 	LDA #$0C
 	CLC
@@ -725,6 +753,18 @@ colorb
 	LDA levelcolor
 	STA $96F2,x			;Print character as the level color
 	RTS
+yellowb
+	TXA
+	STY internum
+	PHA
+	JSR mul22
+	PLA
+	CLC
+	ADC internum
+	TAX
+	LDA #$07
+	STA $96F2,x			;Print character as the yellow color
+	RTS
 
 fillscreen				;Keeps an X counter for moving horizontally across screen
 	LDX #$00			;Calls filltop and fillbottom to print screen column by column
@@ -766,9 +806,14 @@ fillcol
 	BEQ drawship        ;if yes draw ship
 drawbullet1
     CPX bulletX         ;check to see if we want to draw bullet
-    BNE drawBlock
+    BNE drawPUp1
     CPY bulletY
     BEQ drawbullet      ;if yes draw bullet
+drawPUp1				;Check to see if we want to draw Power up
+	CPX powerUpX         ;check to see if we want to draw bullet
+	BNE drawBlock
+	CPY powerUpY
+	BEQ drawPUp	     ;if yes draw bullet
 drawBlock
 	PLA
 	TAY
@@ -781,6 +826,12 @@ drawbullet
     LDA #$22            ; bullet block
     STA $1E00,y
     JMP cont
+drawPUp
+	PLA
+	TAY
+	LDA #$23            ; powerUp block
+	STA $1E00,y
+	JMP cont
 drawship
 	PLA
 	TAY
@@ -827,15 +878,26 @@ fillcolb
 	BEQ drawshipb
 drawbullet1b
 	CPX bulletX
-	BNE drawBlockb
+	BNE drawPUp1b
 	LDA bulletY
+	CMP #$0B
+	BMI drawPUp1b
+	CLC
+	SBC #$0A
+	STA internum
+	CPY internum
+	BEQ drawbulletb
+drawPUp1b
+	CPX powerUpX
+	BNE drawBlockb
+	LDA powerUpY
 	CMP #$0B
 	BMI drawBlockb
 	CLC
 	SBC #$0A
 	STA internum
 	CPY internum
-	BEQ drawbulletb
+	BEQ drawPUpb
 drawBlockb
 	PLA
 	TAY
@@ -853,11 +915,18 @@ drawbulletb
     TAY
     LDA #$26
     STA $1EF2,y
+drawPUpb
+    PLA
+    TAY
+    LDA #$23			;Draw powerup
+    STA $1EF2,y
 contb
 	LDY depth
 	INY
-	CPY #$0B			;Compare Y to 11
-	BMI fillcolb
+	CPY #$0A			;Compare Y to 11
+	BPL endColb
+	JMP fillcolb
+endColb
 	RTS
                ;mul22 takes input in at internum[0],output at internum[0]
 mul22                   ;assume input is y. F(y) = y*22 = x1 + x2 + x3
@@ -1129,6 +1198,11 @@ bulletFlag
     .BYTE $00
 bulletAmmo
     .BYTE $01
+
+powerUpX
+	.BYTE $03
+powerUpY
+	.BYTE $12
 
 depth
     .WORD $00
