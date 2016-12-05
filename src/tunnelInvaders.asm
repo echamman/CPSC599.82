@@ -99,7 +99,12 @@ hitstart			      ;Prints 'PRESS START' - Appendix E
 quitIntro
 	LDA $9111		;load joystick input
 	EOR #$DF		;XOR against fire button bitmask
-	BNE quitIntro		;branch up on no input
+	BEQ quitIntro2		;branch up on no input
+	LDA $9111
+	EOR #$F7			;Check if movement down, gives cheat flag
+	BNE quitIntro
+	LDA #$01
+	STA cheatFlag
 quitIntro2
     LDA $9111
     EOR #$FF
@@ -645,6 +650,9 @@ algo3done
 	RTS
 
 hitdetect
+	LDA cheatFlag
+	CMP #$01
+	BEQ noHit
 	JSR powerUpDetect
 	JSR obsDetect
 	LDX shipcoX			;Load X
@@ -683,6 +691,8 @@ hitBottom
 	RTS
 hitTrue
 	JMP gameOver			;Jump to the end of game screen
+noHit
+	RTS
 
 powerUpDetect
 	LDA powerUpX
@@ -773,7 +783,7 @@ fallingobst
     CPX fallingobsX
     BNE blackt
     CPY fallingobsY
-    BEQ whitet
+    BEQ colort
 blackt
 	LDA topset,x
 	STA internum
@@ -874,7 +884,7 @@ fallingobsb
 	SBC #$0A
 	STA internum
 	CPY internum
-	BEQ whiteb
+	BEQ colorb
 blackb
 	LDA #$0C
 	CLC
@@ -1449,8 +1459,6 @@ staticobs                    ;destroable terrain
 bullet
     .BYTE $00,$00,$00,$18,$18,$00,$00,$00
 
-
-
 levelcolor
 	.BYTE $01
 
@@ -1467,4 +1475,7 @@ musicLoopOffset
     .BYTE $00
 
 randobyte
+	.BYTE $00
+
+cheatFlag
 	.BYTE $00
