@@ -255,13 +255,13 @@ fireBullet
     dec bulletAmmo
     LDA #$01        ;set flag to say bullet is on screen
     STA bulletFlag
-    LDA shipcoX     
+    LDA shipcoX
     STA bulletX     ;set original location of bullet
     LDA shipcoY
     STA bulletY
 fireBulletEnd
     RTS
-    
+
 updateBullet
     LDA bulletFlag          ;load flag
     CMP #$01                ;check if flag is set
@@ -274,7 +274,7 @@ updateBullet
     STA bulletFlag
 updateBulletEnd
     RTS
- 
+
 musicLoop
   	LDA #$0F		        ;load volume 15
 	STA $900E		        ;store volume                      ;volume
@@ -386,7 +386,7 @@ checkAlgo2
     JMP algo2
 checkAlgo3
 	LDA upFlag		;Only update every fourth loop
-	CMP #$03
+	CMP #$02
 	BMI noUpdate
 	LDA #$00
 	STA upFlag
@@ -515,11 +515,20 @@ algo2done
 
 algo3
 	LDX #$14
-	LDA topset,x
+	LDY topset,x
+	LDA currSubLevel
+	ASL
 	CLC
-	CMP #$04
+	ADC #$03
+	STA internum
+	CPY internum
 	BMI setDirectionDown3
-	CMP #$05
+	LDA currSubLevel
+	ASL
+	CLC
+	ADC #$04
+	STA internum
+	CPY internum
 	BPL setDirectionUp3
 	BVC algo3Gen
 setDirectionDown3
@@ -757,7 +766,7 @@ fillcol
 	BEQ drawship        ;if yes draw ship
 drawbullet1
     CPX bulletX         ;check to see if we want to draw bullet
-    BNE drawBlock   
+    BNE drawBlock
     CPY bulletY
     BEQ drawbullet      ;if yes draw bullet
 drawBlock
@@ -826,7 +835,7 @@ drawbullet1b
 	SBC #$0A
 	STA internum
 	CPY internum
-	BEQ drawbulletb  
+	BEQ drawbulletb
 drawBlockb
 	PLA
 	TAY
@@ -1120,7 +1129,7 @@ bulletFlag
     .BYTE $00
 bulletAmmo
     .BYTE $01
-    
+
 depth
     .WORD $00
 internum
@@ -1134,9 +1143,9 @@ staticobs                    ;destroable terrain
 	.BYTE $FF,$3C,$18,$18,$18,$18,$3C,$FF
 bullet
     .BYTE $00,$00,$00,$18,$18,$00,$00,$00
-    
 
-    
+
+
 levelcolor
 	.BYTE $01
 
