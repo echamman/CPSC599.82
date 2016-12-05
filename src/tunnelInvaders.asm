@@ -976,7 +976,7 @@ drawPUpb
 contb
 	LDY depth
 	INY
-	CPY #$0A			;Compare Y to 11
+	CPY #$0B			;Compare Y to 11
 	BPL endColb
 	JMP fillcolb
 endColb
