@@ -249,21 +249,21 @@ endInput
 	RTS
 
 fireBullet
-    LDA bulletFlag      
+    LDA bulletFlag
     CMP #$01            ;check if bullet is onscreen
     BEQ fireBulletEnd   ;if so skip
     LDA bulletAmmoOnes  ;else load current ammo
     CMP #$00            ;compare to zero
-    BNE continueToFire  ;not zero, fire  
+    BNE continueToFire  ;not zero, fire
     LDA bulletAmmoTens  ;else, check if value is multiple of 10
-    CMP #$00            
-    BEQ fireBulletEnd   ;if also 0, no ammo left   
+    CMP #$00
+    BEQ fireBulletEnd   ;if also 0, no ammo left
     DEC bulletAmmoTens  ;else dec tens place
-    LDA #$0A            
+    LDA #$0A
     STA bulletAmmoOnes  ;store 10 for immdieiate decriment
 continueToFire
     DEC bulletAmmoOnes  ;dec ammo by 1
-    LDA #$01            
+    LDA #$01
     STA bulletFlag      ;set flag to 1 to say bullet is on screen
     LDA shipcoX         ;load current ship location X
     STA bulletX         ;set original location of bullet
@@ -284,7 +284,7 @@ updateBullet
     STA bulletFlag
 updateBulletEnd
     RTS
-    
+
 updatefallingobs
     LDA fallingobsFlag
     CMP #$01
@@ -292,13 +292,14 @@ updatefallingobs
     DEC fallingobsX
     INC fallingobsY
     LDA fallingobsX
+	AND #$7F					;remove neg flag
     CMP #$18
     BMI updatefallingobsEnd
     LDA #$00
     STA fallingobsFlag
 updatefallingobsEnd
     RTS
-    
+
 
 musicLoop
   	LDA #$0F		        ;load volume 15
@@ -357,9 +358,6 @@ endUse
 	RTS
 
 spawn
-	LDA powerUpFlag
-	CMP #$01
-	BEQ nospawn
 	LDX #00
 	STX randobyte	;getrng not random in this instance, use this for randomness
 	LDA currScoreOnes
@@ -369,11 +367,26 @@ spawn
 	LDA sonata,x
 	EOR randobyte
 	STA randobyte
-	STA randobyte
 	LDA randobyte
 	AND #$01F		;Make it 9 bits
-	CMP #$02		;If number is equal to 4, spawn a powerup
+	CMP #$02		;If number is equal to 2, spawn a powerup
+	BEQ spawnpUP
+	CMP #$04		;If number is equal to 4, spawn falling obstacle
 	BNE nospawn
+spawnObs
+	LDA fallingobsFlag
+	CMP #$01
+	BEQ nospawn
+	LDX #$15
+	LDY #$00
+	STX fallingobsX
+	STY fallingobsY
+	LDA #$01
+	STA fallingobsFlag
+spawnpUP
+	LDA powerUpFlag
+	CMP #$01
+	BEQ nospawn
 	LDX #$15
 	STX powerUpX
 	LDA drawDirection	;Deciding to draw in top tunnel or bottom tunnel
@@ -430,17 +443,6 @@ rfupdate
     CPX #$16
     BMI rfupdate
     JSR algomain
-    ;LDA genvalue
-    ;LDX #$15
-    ;STA emptyset,x
-    ;CMP #$0B
-    ;BEQ resetgenvalue
-    ;ADC #$01
-    ;STA genvalue
-    ;BVC updatedone
-resetgenvalue
-    ;LDA #$04
-    ;STA genvalue
 updatedone
     RTS
 
@@ -644,6 +646,7 @@ algo3done
 
 hitdetect
 	JSR powerUpDetect
+	JSR obsDetect
 	LDX shipcoX			;Load X
 	LDY shipcoY			;Load Y
 	CPY #$0B
@@ -695,6 +698,17 @@ powerUpDetect
 	LDA #$00
 	STA powerUpFlag
 noPUp
+	RTS
+
+obsDetect
+	LDA shipcoX
+	CMP fallingobsX
+	BNE noObsHit
+	LDA shipcoY
+	CMP fallingobsY
+	BNE noObsHit
+	JSR gameOver
+noObsHit
 	RTS
 
 
@@ -1344,7 +1358,7 @@ rngloop
 
 ;=============================================================================
 ;DATA
-    org $1990        ;dec  6144
+    org $19FF        ;dec  6144
 
 inputval
 	.BYTE $00
@@ -1377,9 +1391,6 @@ drawDirection
 
 ship
     .BYTE   $00,$18,$24,$F3,$7E,$3C,$00,$00
-
-;genvalue            ;seed for tunnel gen
-    ;.BYTE #$07
 
 upFlag
 	.BYTE $00
@@ -1416,7 +1427,7 @@ powerUpY
 powerUpFlag
 	.BYTE $01
 
-    
+
 fallingobsX
     .BYTE $14
 fallingobsY
