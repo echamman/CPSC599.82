@@ -965,6 +965,7 @@ drawbulletb
     TAY
     LDA #$26
     STA $1EF2,y
+	JMP contb
 drawPUpb
     PLA
     TAY
@@ -1190,7 +1191,7 @@ rngloop
 
 ;=============================================================================
 ;DATA
-    org $1800        ;dec  6144
+    org $1900        ;dec  6144
 
 inputval
 	.BYTE $00
