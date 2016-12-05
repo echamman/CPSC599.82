@@ -663,6 +663,8 @@ bulletHitBottom
     BPL bulletHitTrue
     RTS
 bulletHitTrue
+    LDA #$00
+    STA bulletFlag
     LDA #$FF
     STA bulletX
     STA bulletY
