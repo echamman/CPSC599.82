@@ -251,15 +251,15 @@ fireBullet
     BEQ fireBulletEnd
     LDA bulletAmmoOnes
     CMP #$00
-    BEQ fireBulletEnd
-    ;BNE continueToFire
-    
-    ;LDA bulletAmmoTens
-    ;CMP #$00
     ;BEQ fireBulletEnd
-    ;DEC bulletAmmoTens
-    ;LDA #$0A
-    ;STA bulletAmmoOnes
+    BNE continueToFire
+    
+    LDA bulletAmmoTens
+    CMP #$00
+    BEQ fireBulletEnd
+    DEC bulletAmmoTens
+    LDA #$0A
+    STA bulletAmmoOnes
 continueToFire
     DEC bulletAmmoOnes
     LDA #$01        ;set flag to say bullet is on screen
