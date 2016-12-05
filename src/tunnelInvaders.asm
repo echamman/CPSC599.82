@@ -26,10 +26,10 @@ stub	.BYTE #$0	;New line
     JSR setchars     ;Loads charset from ROM to RAM
     JSR intro
 gameloop            ;check input,update data, draw data to screen
-    JSR hitdetect	;Check if hit
+    ;JSR hitdetect	;Check if hit
     JSR checkInput  ;returns user input to Reg Y
 	JSR useInput    ;needs comments in function
-    JSR hitdetect	;Check if hit
+    ;JSR hitdetect	;Check if hit
 	JSR musicLoop   ;da beats!
     JSR updatedata  ;based off Reg Y update certain blocks -> needs comments in function
 	JSR fillscreen
