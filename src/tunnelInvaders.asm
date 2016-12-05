@@ -26,10 +26,10 @@ stub	.BYTE #$0	;New line
     JSR setchars     ;Loads charset from ROM to RAM
     JSR intro
 gameloop            ;check input,update data, draw data to screen
-    JSR hitdetect	;Check if hit
+    ;JSR hitdetect	;Check if hit
     JSR checkInput  ;returns user input to Reg Y
 	JSR useInput    ;needs comments in function
-  	JSR hitdetect	;Check if hit
+    ;JSR hitdetect	;Check if hit
 	JSR musicLoop   ;da beats!
     JSR updatedata  ;based off Reg Y update certain blocks -> needs comments in function
 	JSR fillscreen
@@ -249,10 +249,17 @@ fireBullet
     LDA bulletFlag
     CMP #$01
     BEQ fireBulletEnd
-    LDA bulletAmmo
+    LDA bulletAmmoOnes
+    CMP #$00
+    BNE continueToFire
+    LDA bulletAmmoTens
     CMP #$00
     BEQ fireBulletEnd
-    dec bulletAmmo
+    DEC bulletAmmoTens
+    LDA #$0A
+    STA bulletAmmoOnes
+continueToFire
+    DEC bulletAmmoOnes
     LDA #$01        ;set flag to say bullet is on screen
     STA bulletFlag
     LDA shipcoX
@@ -823,7 +830,7 @@ drawBlock
 drawbullet
     PLA
     TAY
-    LDA #$22            ; bullet block
+    LDA #$26           ; bullet block
     STA $1E00,y
     JMP cont
 drawPUp
@@ -1067,48 +1074,51 @@ printScoreLevel
 	STA $1FE4
 	LDA #$03		;C
 	STA $1FE5
-	LDA #$0F		;O
-	STA $1FE6
 	LDA #$12		;R
-	STA $1FE7
-	LDA #$05		;E
-	STA $1FE8
+	STA $1FE6
+
 	CLC
 	LDA currScoreTThous		;0 //currScoreHundredThousands
 	ADC #$30
-	STA $1FEA
+	STA $1FE8
 	LDA currScoreThous		;0 //currScoreTenThousands
 	ADC #$30
-	STA $1FEB
+	STA $1FE9
 	LDA currScoreHuns		;0 //currScoreOnes
 	ADC #$30
-	STA $1FEC
+	STA $1FEA
 	LDA currScoreTens		;0 //currScoreTens
 	ADC #$30
-	STA $1FED
+	STA $1FEB
 	LDA currScoreOnes       ;0 //currScoreHuns
 	ADC #$30
-	STA $1FEE
+	STA $1FEC
 
 	LDA #$0C		;L
-	STA $1FF0
-	LDA #$05		;E
-	STA $1FF1
-	LDA #$16		;V
-	STA $1FF2
-	LDA #$05		;E
-	STA $1FF3
-	LDA #$0C		;L
-	STA $1FF4
+	STA $1FEE
 	CLC
-	LDA currLevel		;1
+	LDA currLevel
 	ADC #$30
-	STA $1FF6
+	STA $1FF0
 	LDA #$2D		;-
-	STA $1FF7
-	LDA currSubLevel		;1
+	STA $1FF1
+	LDA currSubLevel
 	ADC #$30
-	STA $1FF8
+	STA $1FF2
+    
+    LDA #$01		;A
+	STA $1FF4
+	LDA #$0D		;M
+	STA $1FF5
+	LDA #$0D		;M
+	STA $1FF6
+	CLC
+	LDA bulletAmmoTens		;1
+	ADC #$30
+    STA $1FF8
+    LDA bulletAmmoOnes		;1
+	ADC #$30
+    STA $1FF9
 
 	RTS
 
@@ -1196,7 +1206,9 @@ bulletY
     .BYTE $FF
 bulletFlag
     .BYTE $00
-bulletAmmo
+bulletAmmoOnes
+    .BYTE $01
+bulletAmmoTens
     .BYTE $01
 
 powerUpX
