@@ -29,7 +29,7 @@ gameloop            ;check input,update data, draw data to screen
     JSR hitdetect	;Check if hit
     JSR checkInput  ;returns user input to Reg Y
 	JSR useInput    ;needs comments in function
-    JSR hitdetect	;Check if hit
+  	JSR hitdetect	;Check if hit
 	JSR musicLoop   ;da beats!
     JSR updatedata  ;based off Reg Y update certain blocks -> needs comments in function
 	JSR fillscreen
@@ -159,7 +159,7 @@ powerup1
     LDA powerup,x      ;Chatset location 28 or dec 7449-7456
     STA $1D18,x
     INX
-    CPX #$08       ;dec 72 = 1*8
+    CPX #$08       ;dec 8 = 1*8
     BNE powerup1
 falling_obs_obj
     LDX #$0
@@ -167,7 +167,7 @@ fallingobs1
     LDA fallingobs,x      ;Chatset location 29 or dec 7457-7464
     STA $1D20,x
     INX
-    CPX #$08       ;dec 72 = 1*8
+    CPX #$08       ;dec 8 = 1*8
     BNE fallingobs1
 static_obs_obj
     LDX #$0
@@ -175,8 +175,16 @@ staticobs1
     LDA staticobs,x      ;Chatset location 30 or dec 7465-7472
     STA $1D28,x
     INX
-    CPX #$08       ;dec 72 = 1*8
+    CPX #$08       ;dec 8 = 1*8
     BNE staticobs1
+bullet_obj
+    LDX #$0
+bullet1
+    LDA bullet,x      ;Chatset location 31 or dec 7473-7480
+    STA $1D30,x
+    INX
+    CPX #$08       ;dec 8 = 1*8
+    BNE bullet1
     RTS
 
 checkInput			;Stores direction/fire value to Y register
@@ -186,16 +194,15 @@ checkInput			;Stores direction/fire value to Y register
 	STA $9122		;store to VIA#2 DDR
 psf
 	;LDA #$00		;zero volume value
-	;STA $900E		;store volume
+	;STA $900A		;store volume
 	LDA $9111		;load joystick input
 	EOR #$DF		;XOR against bitmask
 	BNE psu			;branch to next check
+    JSR fireBullet
 	;LDA #$0F		;load volume 15
 	;STA $900E		;store volume
-	;LDA #$F1		;load tone value
+	;LDA #$87		;load tone value
 	;STA $900A		;store to speaker 1
-	;LDA #$ED		;load tone value
-	;STA $900B		;store to speaker 2
 	LDY #$01		;1 is stored to Y if fire is held down
 	STY inputval
 	BNE endInput
@@ -234,6 +241,36 @@ endInput
 	STX $9122		;else restore VIA#2
 	RTS
 
+fireBullet
+    LDA bulletFlag
+    CMP #$01
+    BEQ fireBulletEnd
+    LDA bulletAmmo
+    CMP #$00
+    BEQ fireBulletEnd
+    dec bulletAmmo
+    LDA #$01        ;set flag to say bullet is on screen
+    STA bulletFlag
+    LDA shipcoX     
+    STA bulletX     ;set original location of bullet
+    LDA shipcoY
+    STA bulletY
+fireBulletEnd
+    RTS
+    
+updateBullet
+    LDA bulletFlag          ;load flag
+    CMP #$01                ;check if flag is set
+    BNE updateBulletEnd     ;if 0 then do nothing
+    INC bulletX             ;else inc bullet x pos
+    LDA bulletX             ;
+    CMP #$18                ;check to see if offscreen
+    BMI updateBulletEnd     ;if not end
+    LDA #$00                ;else store that it is offscreen
+    STA bulletFlag
+updateBulletEnd
+    RTS
+ 
 musicLoop
   	LDA #$0F		        ;load volume 15
 	STA $900E		        ;store volume                      ;volume
@@ -298,6 +335,7 @@ endUse
 updatedata
     LDX #$01
     LDY #$00
+    JSR updateBullet
 rfupdate
     LDA topset,x
     STA topset,y
@@ -551,9 +589,14 @@ hitTrue
 
 colortop	            ;Changes color of char printed, Y val should be internum+1, X is internum+
 	CPX shipcoX
-	BNE blackt
+	BNE bullett
 	CPY shipcoY
 	BEQ whitet
+bullett
+    CPX bulletX
+    BNE blackt
+    CPY bulletY
+    BEQ whitet
 blackt
 	LDA topset,x
 	STA internum
@@ -601,8 +644,19 @@ colort
 
 colorbottom	            ;Changes color of char printed
 	CPX shipcoX
-	BNE blackb
+	BNE bulletb
 	LDA shipcoY
+	CMP #$0B
+	BMI bulletb
+	CLC
+	SBC #$0A
+	STA internum
+	CPY internum
+	BEQ whiteb
+bulletb
+	CPX bulletX
+	BNE blackb
+	LDA bulletY
 	CMP #$0B
 	BMI blackb
 	CLC
@@ -693,21 +747,31 @@ fillcol
 	ADC internum		;Adding the x value to the y val for offset
 	PHA					;Push this to stack
 	LDY depth
-	CPX shipcoX
-	BNE drawBlock
+	CPX shipcoX         ;check to see if we want to draw ship
+	BNE drawbullet1
 	CPY shipcoY
-	BEQ drawship
+	BEQ drawship        ;if yes draw ship
+drawbullet1
+    CPX bulletX         ;check to see if we want to draw bullet
+    BNE drawBlock   
+    CPY bulletY
+    BEQ drawbullet      ;if yes draw bullet
 drawBlock
 	PLA
 	TAY
 	LDA #$00			;;Block to print
 	STA $1E00,y			;Print at offset
-	LDA #$00
-	BEQ cont
+	JMP cont
+drawbullet
+    PLA
+    TAY
+    LDA #$22            ; bullet block
+    STA $1E00,y
+    JMP cont
 drawship
 	PLA
 	TAY
-	LDA #$22
+	LDA #$22            ;ship block
 	STA $1E00,y			;Print at offset
 cont
 	LDY depth
@@ -739,27 +803,43 @@ fillcolb
 	PHA					;Push this to stack
 	LDY depth
 	CPX shipcoX
-	BNE drawBlockb
+	BNE drawbullet1b
 	LDA shipcoY
+	CMP #$0B
+	BMI drawbullet1b
+	CLC
+	SBC #$0A
+	STA internum
+	CPY internum
+	BEQ drawshipb
+drawbullet1b
+	CPX bulletX
+	BNE drawBlockb
+	LDA bulletY
 	CMP #$0B
 	BMI drawBlockb
 	CLC
 	SBC #$0A
 	STA internum
 	CPY internum
-	BEQ drawshipb
+	BEQ drawbulletb  
 drawBlockb
 	PLA
 	TAY
 	LDA #$00			;;Block to print
 	STA $1EF2,y			;Print at offset
-	LDA #$00
-	BEQ contb
+	JMP contb
 drawshipb
 	PLA
 	TAY
 	LDA #$22
 	STA $1EF2,y			;Print at offset
+    JMP contb
+drawbulletb
+    PLA
+    TAY
+    LDA #$26
+    STA $1EF2,y
 contb
 	LDY depth
 	INY
@@ -1028,6 +1108,15 @@ shipcoX					;X position of ship
 shipcoY					;Y position of ship
 	.BYTE #$12
 
+bulletX
+    .BYTE $FF
+bulletY
+    .BYTE $FF
+bulletFlag
+    .BYTE $00
+bulletAmmo
+    .BYTE $02
+    
 depth
     .WORD $00
 internum
@@ -1039,7 +1128,11 @@ fallingobs                ;falling obs (non destroyable)
 	.BYTE $FF,$FF,$7E,$7E,$3C,$3C,$18,$18
 staticobs                    ;destroable terrain
 	.BYTE $FF,$3C,$18,$18,$18,$18,$3C,$FF
+bullet
+    .BYTE $00,$00,$00,$18,$18,$00,$00,$00
+    
 
+    
 levelcolor
 	.BYTE $01
 
