@@ -253,9 +253,7 @@ fireBullet
     BEQ fireBulletEnd
     LDA bulletAmmoOnes
     CMP #$00
-    ;BEQ fireBulletEnd
-    BNE continueToFire
-    
+    BNE continueToFire  
     LDA bulletAmmoTens
     CMP #$00
     BEQ fireBulletEnd
@@ -1043,6 +1041,8 @@ addPickupToAmmo
     INC bulletAmmoOnes
     BVC endPickupToAmmo
 addToAmmoTens
+    LDA #$00
+    STA bulletAmmoOnes
     LDA bulletAmmoTens
     CMP #$09
     BEQ endPickupToAmmo
