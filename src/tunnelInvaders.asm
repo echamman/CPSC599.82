@@ -28,7 +28,7 @@ stub	.BYTE #$0	;New line
 gameloop            ;check input,update data, draw data to screen
     JSR hitdetect	;Check if hit
     JSR bulletdetect ; check if bullet hit something
-    JSR checkInput  ;returns user input to Reg Y
+    ;JSR checkInput  ;returns user input to Reg Y
 	JSR useInput    ;needs comments in function
   	JSR hitdetect	;Check if hit
     JSR bulletdetect ; check if bullet hit something
@@ -205,16 +205,10 @@ checkInput			;Stores direction/fire value to Y register
 	LDX $9122		;load VIA#2 DDR to X
 	STA $9122		;store to VIA#2 DDR
 psf
-	;LDA #$00		;zero volume value
-	;STA $900A		;store volume
 	LDA $9111		;load joystick input
 	EOR #$DF		;XOR against bitmask
 	BNE psu			;branch to next check
     JSR fireBullet
-	;LDA #$0F		;load volume 15
-	;STA $900E		;store volume
-	;LDA #$87		;load tone value
-	;STA $900A		;store to speaker 1
 	LDY #$01		;1 is stored to Y if fire is held down
 	STY inputval
 	BNE endInput
@@ -323,8 +317,19 @@ musicLoop1
     RTS
 
 useInput
+	LDA #$00		;port input mask
+	STA $9113		;store to VIA#1 DDR
+	;LDX $9122		;load VIA#2 DDR to X
+	STA $9122		;store to VIA#2 DDR
+tryFire
+	LDA $9111		;load joystick input
+	EOR #$DF		;XOR against bitmask
+	BNE tryUp			;branch to next check
+	JSR fireBullet
+	JMP endUse
 tryUp
-	CPY #$02
+	LDA $9111		;load joystick input
+	EOR #$FB		;XOR against bitmask
 	BNE tryDown
 	LDA shipcoY
 	CMP #$00
@@ -333,7 +338,8 @@ tryUp
 	LDA #$00
 	BEQ endUse
 tryDown
-	CPY #$03
+	LDA $9111		;load joystick input
+	EOR #$F7		;XOR against bitmask
 	BNE tryLeft
 	LDA shipcoY
 	CMP #$15
@@ -342,7 +348,8 @@ tryDown
 	LDA #$00
 	BEQ endUse
 tryLeft
-	CPY #$04
+	LDA $9111		;load joystick input
+	EOR #$EF		;XOR against bitmask
 	BNE tryRight
 	LDA shipcoX
 	CMP #$00
@@ -351,7 +358,8 @@ tryLeft
 	LDA #$00
 	BEQ endUse
 tryRight
-	CPY #$05
+	LDA $9120		;load joystick input (VIA2)
+	EOR #$7F		;XOR against bitmask
 	BNE endUse
 	LDA shipcoX
 	CMP #$15
