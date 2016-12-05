@@ -27,9 +27,11 @@ stub	.BYTE #$0	;New line
     JSR intro
 gameloop            ;check input,update data, draw data to screen
     JSR hitdetect	;Check if hit
+    JSR bulletdetect ; check if bullet hit something
     JSR checkInput  ;returns user input to Reg Y
 	JSR useInput    ;needs comments in function
   	JSR hitdetect	;Check if hit
+    JSR bulletdetect ; check if bullet hit something
 	JSR musicLoop   ;da beats!
     JSR updatedata  ;based off Reg Y update certain blocks -> needs comments in function
 	JSR fillscreen
@@ -600,6 +602,47 @@ hitBottom
 hitTrue
 	JMP gameOver			;Jump to the end of game screen
 
+bulletdetect
+    LDX bulletX         ;load x pos
+    LDY bulletY         ;load y pos
+    CPY #$0B
+    BMI bulletHitTop    ;If Y is in top half, jump there 
+    CLC
+    LDA bulletY
+    SBC #$0A            ;Else subtract 10 from Y so it is a usable value
+    TAY
+    LDA #$00
+    BEQ bulletHitBottom
+bulletHitTop
+    LDA topset,x
+    STA internum
+    CPY internum
+    BMI bulletHitTrue
+    LDA emptyset,x
+    STA internum
+    CPY internum
+    BPL bulletHitTrue
+    RTS
+bulletHitBottom
+    LDA #$0C
+    CLC
+    SBC emptyset,x
+    STA internum
+    CPY internum
+    BMI bulletHitTrue
+    LDA #$0C
+    CLC
+    SBC topset,x
+    STA internum
+    CPY internum
+    BPL bulletHitTrue
+    RTS
+bulletHitTrue
+    LDA #$FF    
+    STA bulletX
+    STA bulletY
+    RTS
+    
 colortop	            ;Changes color of char printed, Y val should be internum+1, X is internum+
 	CPX shipcoX
 	BNE bullett
