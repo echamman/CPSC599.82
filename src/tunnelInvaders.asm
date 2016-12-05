@@ -613,7 +613,7 @@ bulletdetect
     LDX bulletX         ;load x pos
     LDY bulletY         ;load y pos
     CPY #$0B
-    BMI bulletHitTop    ;If Y is in top half, jump there 
+    BMI bulletHitTop    ;If Y is in top half, jump there
     CLC
     LDA bulletY
     SBC #$0A            ;Else subtract 10 from Y so it is a usable value
@@ -645,11 +645,11 @@ bulletHitBottom
     BPL bulletHitTrue
     RTS
 bulletHitTrue
-    LDA #$FF    
+    LDA #$FF
     STA bulletX
     STA bulletY
     RTS
-    
+
 colortop	            ;Changes color of char printed, Y val should be internum+1, X is internum+
 	CPX shipcoX
 	BNE bullett
@@ -1148,7 +1148,7 @@ printScoreLevel
 	LDA currSubLevel
 	ADC #$30
 	STA $1FF2
-    
+
     LDA #$01		;A
 	STA $1FF4
 	LDA #$0D		;M
