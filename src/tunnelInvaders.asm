@@ -472,7 +472,44 @@ algo2done
 	RTS
 
 algo3
-    RTS
+	LDX #$14
+	LDA topset,x
+	CLC
+	CMP #$04
+	BMI setDirectionDown3
+	CMP #$05
+	BPL setDirectionUp3
+	BVC algo3Gen
+setDirectionDown3
+	LDA #$01
+	STA drawDirection
+	BVC algo3Gen
+setDirectionUp3
+	LDA #$00
+	STA drawDirection
+	BVC algo3Gen
+algo3Gen
+	LDA drawDirection
+	CMP #$01
+	BEQ algo3GenDown
+	LDA topset,x
+	SEC
+	SBC #$01
+	LDX #$15
+	STA topset,x
+	LDA #$0D
+	STA emptyset,x
+	BVC algo3done
+algo3GenDown
+	LDA topset,x
+	CLC
+	ADC #$01
+	LDX #$15
+	STA topset,x
+	LDA #$0D
+	STA emptyset,x
+algo3done
+	RTS
 
 hitdetect
 	LDX shipcoX			;Load X
