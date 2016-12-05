@@ -28,7 +28,6 @@ stub	.BYTE #$0	;New line
 gameloop            ;check input,update data, draw data to screen
     JSR hitdetect	;Check if hit
     JSR bulletdetect ; check if bullet hit something
-    ;JSR checkInput  ;returns user input to Reg Y
 	JSR useInput    ;needs comments in function
   	JSR hitdetect	;Check if hit
     JSR bulletdetect ; check if bullet hit something
@@ -198,54 +197,6 @@ bullet1
     CPX #$08       ;dec 8 = 1*8
     BNE bullet1
     RTS
-
-checkInput			;Stores direction/fire value to Y register
-	LDA #$00		;port input mask
-	STA $9113		;store to VIA#1 DDR
-	LDX $9122		;load VIA#2 DDR to X
-	STA $9122		;store to VIA#2 DDR
-psf
-	LDA $9111		;load joystick input
-	EOR #$DF		;XOR against bitmask
-	BNE psu			;branch to next check
-    JSR fireBullet
-	LDY #$01		;1 is stored to Y if fire is held down
-	STY inputval
-	BNE endInput
-psu
-	LDA $9111		;load joystick input
-	EOR #$FB		;XOR against bitmask
-	BNE psd			;branch to next check
-	LDY #$02		;2 is stored to Y if up is held down
-	STY inputval
-	BNE endInput
-psd
-	LDA $9111		;load joystick input
-	EOR #$F7		;XOR against bitmask
-	BNE psl			;branch to next check
-	LDY #$03		;3 is stored to Y if down is held down
-	STY inputval
-	BNE endInput
-psl
-	LDA $9111		;load joystick input
-	EOR #$EF		;XOR against bitmask
-	BNE psr			;branch to next check
-	LDY #$04		;4 is stored to Y if left is held down
-	STY inputval
-	BNE endInput
-psr
-	LDA $9120		;load joystick input (VIA2)
-	EOR #$7F		;XOR against bitmask
-	BNE noPush		;branch to next check
-	LDY #$05		;5 is stored to Y if right is held down
-	STY inputval
-	BNE endInput
-noPush
-	LDY #$00		;0 is stored to Y if nothing is pushed
-	STY inputval
-endInput
-	STX $9122		;else restore VIA#2
-	RTS
 
 fireBullet
     LDA bulletFlag
@@ -770,6 +721,8 @@ bulletHitTrue
     LDA #$FF
     STA bulletX
     STA bulletY
+	LDA #$00
+	STA bulletFlag
     RTS
 
 colortop	            ;Changes color of char printed, Y val should be internum+1, X is internum+
