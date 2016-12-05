@@ -33,6 +33,7 @@ gameloop            ;check input,update data, draw data to screen
   	JSR hitdetect	;Check if hit
     JSR bulletdetect ; check if bullet hit something
 	JSR musicLoop   ;da beats!
+	JSR spawn
     JSR updatedata  ;based off Reg Y update certain blocks -> needs comments in function
 	JSR fillscreen
 	JSR updateScore
@@ -255,7 +256,7 @@ fireBullet
     CMP #$00
     ;BEQ fireBulletEnd
     BNE continueToFire
-    
+
     LDA bulletAmmoTens
     CMP #$00
     BEQ fireBulletEnd
@@ -342,6 +343,46 @@ tryRight
 endUse
 	RTS
 
+spawn
+	LDA powerUpFlag
+	CMP #$01
+	BEQ nospawn
+	LDX #00
+	STX randobyte	;getrng not random in this instance, use this for randomness
+	LDA currScoreOnes
+	EOR randobyte
+	STA randobyte
+	LDX musicLoopOffset
+	LDA sonata,x
+	EOR randobyte
+	STA randobyte
+	STA randobyte
+	LDA randobyte
+	AND #$01F		;Make it 9 bits
+	CMP #$02		;If number is equal to 4, spawn a powerup
+	BNE nospawn
+	LDX #$15
+	STX powerUpX
+	LDA drawDirection	;Deciding to draw in top tunnel or bottom tunnel
+	CMP #$01
+	BEQ powerOnb
+	LDA topset,x
+	ADC #$02
+	STA powerUpY
+	JMP nospawn
+powerOnb
+	LDA topset,x
+	ADC #$02
+	STA internum
+	LDA #$16
+	SEC
+	SBC internum
+	STA powerUpY
+nospawn
+	CLC
+	RTS
+
+
 ;1) load col + 1 in to memory
 ;2) clear col
 ;something here
@@ -349,9 +390,20 @@ endUse
 
 updatedata
 	DEC powerUpX
+	LDA powerUpX
+	AND #$7F			;Remove negative flag if it goes from 0 to 255
+	CMP #$17
+	BMI ponScreen
+	LDA #$00
+	STA powerUpFlag
+	JMP skipPUps
+ponScreen
+	LDA #$01
+	STA powerUpFlag
+skipPUps
+	JSR updateBullet
     LDX #$01
     LDY #$00
-    JSR updateBullet
 rfupdate
     LDA topset,x
     STA topset,y
@@ -623,10 +675,12 @@ powerUpDetect
 	JSR addPickupToScore
     JSR addPickupToAmmo
 	LDA #$FF
-	STA powerUpY
+	STA powerUpX
+	LDA #$00
+	STA powerUpFlag
 noPUp
 	RTS
-    
+
 
 
 bulletdetect
@@ -665,8 +719,6 @@ bulletHitBottom
     BPL bulletHitTrue
     RTS
 bulletHitTrue
-    LDA #$00
-    STA bulletFlag
     LDA #$FF
     STA bulletX
     STA bulletY
@@ -1037,7 +1089,7 @@ addTenPickScore
     ADC #$01
     STA currScoreTens
     RTS
-    
+
 addPickupToAmmo
     LDA bulletAmmoOnes
     CMP #$09
@@ -1212,22 +1264,25 @@ hold
 	BNE hold
 	RTS
 
+;Needs further debugging, causes glitches in levels
 getrng
 	LDY currScoreOnes
 	LDA $00A2
 rngloop
 	ADC musicLoopOffset
 	ADC $00A2
+	AND #$FF			;keep as byte
 	DEY
 	CPY #$01
 	BMI rngloop
 	AND #$01
 	TAY
+	CLC
 	RTS
 
 ;=============================================================================
 ;DATA
-    org $1900        ;dec  6144
+    org $1950        ;dec  6144
 
 inputval
 	.BYTE $00
@@ -1296,6 +1351,8 @@ powerUpX
 	.BYTE $14
 powerUpY
 	.BYTE $12
+powerUpFlag
+	.BYTE $01
 
 depth
     .WORD $00
@@ -1327,3 +1384,6 @@ sonata
 
 musicLoopOffset
     .BYTE $00
+
+randobyte
+	.BYTE $00
