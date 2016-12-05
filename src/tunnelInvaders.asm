@@ -621,10 +621,13 @@ powerUpDetect
 	CMP shipcoY
 	BNE noPUp
 	JSR addPickupToScore
+    JSR addPickupToAmmo
 	LDA #$FF
 	STA powerUpY
 noPUp
 	RTS
+    
+
 
 bulletdetect
     LDX bulletX         ;load x pos
@@ -1032,6 +1035,20 @@ addTenPickScore
     ADC #$01
     STA currScoreTens
     RTS
+    
+addPickupToAmmo
+    LDA bulletAmmoOnes
+    CMP #$09
+    BEQ addToAmmoTens
+    INC bulletAmmoOnes
+    BVC endPickupToAmmo
+addToAmmoTens
+    LDA bulletAmmoTens
+    CMP #$09
+    BEQ endPickupToAmmo
+    INC bulletAmmoTens
+endPickupToAmmo
+    RTS
 
 updateScore
     LDA currTurn
@@ -1271,7 +1288,7 @@ bulletFlag
 bulletAmmoOnes
     .BYTE $01
 bulletAmmoTens
-    .BYTE $01
+    .BYTE $00
 
 powerUpX
 	.BYTE $14
