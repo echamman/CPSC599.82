@@ -284,6 +284,21 @@ updateBullet
     STA bulletFlag
 updateBulletEnd
     RTS
+    
+updatefallingobs
+    LDA fallingobsFlag
+    CMP #$01
+    BNE updatefallingobsEnd
+    DEC fallingobsX
+    INC fallingobsY
+    LDA fallingobsX
+    CMP #$18
+    BMI updatefallingobsEnd
+    LDA #$00
+    STA fallingobsFlag
+updatefallingobsEnd
+    RTS
+    
 
 musicLoop
   	LDA #$0F		        ;load volume 15
@@ -387,6 +402,8 @@ nospawn
 ;3) store col = col + 1
 
 updatedata
+    JSR updateBullet
+    JSR updatefallingobs
 	DEC powerUpX
 	LDA powerUpX
 	AND #$7F			;Remove negative flag if it goes from 0 to 255
@@ -402,6 +419,7 @@ skipPUps
 	JSR updateBullet
     LDX #$01
     LDY #$00
+
 rfupdate
     LDA topset,x
     STA topset,y
@@ -734,9 +752,14 @@ bullett
     BEQ whitet
 powerUpt
     CPX powerUpX
-    BNE blackt
+    BNE fallingobst
     CPY powerUpY
     BEQ yellowt
+fallingobst
+    CPX fallingobsX
+    BNE blackt
+    CPY fallingobsY
+    BEQ whitet
 blackt
 	LDA topset,x
 	STA internum
@@ -818,15 +841,26 @@ bulletb
 	BEQ whiteb
 powerUpb
 	CPX powerUpX
-	BNE blackb
+	BNE fallingobsb
 	LDA powerUpY
+	CMP #$0B
+	BMI fallingobsb
+	CLC
+	SBC #$0A
+	STA internum
+	CPY internum
+	BEQ yellowb
+fallingobsb
+	CPX fallingobsX
+	BNE blackb
+	LDA fallingobsY
 	CMP #$0B
 	BMI blackb
 	CLC
 	SBC #$0A
 	STA internum
 	CPY internum
-	BEQ yellowb
+	BEQ whiteb
 blackb
 	LDA #$0C
 	CLC
@@ -933,9 +967,14 @@ drawbullet1
     BEQ drawbullet      ;if yes draw bullet
 drawPUp1				;Check to see if we want to draw Power up
 	CPX powerUpX         ;check to see if we want to draw bullet
-	BNE drawBlock
+	BNE drawfallingobs1
 	CPY powerUpY
 	BEQ drawPUp	     ;if yes draw bullet
+drawfallingobs1				;Check to see if we want to draw Power up
+	CPX fallingobsX         ;check to see if we want to draw bullet
+	BNE drawBlock
+	CPY fallingobsY
+	BEQ drawfallingobs	     ;if yes draw bullet
 drawBlock
 	PLA
 	TAY
@@ -952,6 +991,12 @@ drawPUp
 	PLA
 	TAY
 	LDA #$23            ; powerUp block
+	STA $1E00,y
+	JMP cont
+drawfallingobs
+    PLA
+	TAY
+	LDA #$24            ; falling obs  block
 	STA $1E00,y
 	JMP cont
 drawship
@@ -1011,15 +1056,26 @@ drawbullet1b
 	BEQ drawbulletb
 drawPUp1b
 	CPX powerUpX
-	BNE drawBlockb
+	BNE drawfallingobs1b
 	LDA powerUpY
+	CMP #$0B
+	BMI drawfallingobs1b
+	CLC
+	SBC #$0A
+	STA internum
+	CPY internum
+	BEQ drawPUpb
+drawfallingobs1b
+	CPX fallingobsX
+	BNE drawBlockb
+	LDA fallingobsY
 	CMP #$0B
 	BMI drawBlockb
 	CLC
 	SBC #$0A
 	STA internum
 	CPY internum
-	BEQ drawPUpb
+	BEQ drawfallingobsb
 drawBlockb
 	PLA
 	TAY
@@ -1042,6 +1098,12 @@ drawPUpb
     PLA
     TAY
     LDA #$23			;Draw powerup
+    STA $1EF2,y
+    JMP contb
+drawfallingobsb
+    PLA
+    TAY
+    LDA #$24			;Draw powerup
     STA $1EF2,y
 contb
 	LDY depth
@@ -1282,7 +1344,7 @@ rngloop
 
 ;=============================================================================
 ;DATA
-    org $1950        ;dec  6144
+    org $1990        ;dec  6144
 
 inputval
 	.BYTE $00
@@ -1353,6 +1415,14 @@ powerUpY
 	.BYTE $12
 powerUpFlag
 	.BYTE $01
+
+    
+fallingobsX
+    .BYTE $14
+fallingobsY
+    .BYTE $00
+fallingobsFlag
+    .BYTE $01
 
 depth
     .WORD $00
