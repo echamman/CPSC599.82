@@ -32,17 +32,17 @@ gameloop            ;check input,update data, draw data to screen
   	JSR hitdetect	;Check if hit
     JSR bulletdetect ; check if bullet hit something
 	JSR musicLoop   ;da beats!
-	JSR spawn
+	JSR spawn		;Calls for spawning of obstables and powerups
     JSR updatedata  ;based off Reg Y update certain blocks -> needs comments in function
-	JSR fillscreen
-	JSR updateScore
-	JSR printScoreLevel
-	JSR waitTurn
+	JSR fillscreen	;Draws the screen
+	JSR updateScore		;Updates score based on time
+	JSR printScoreLevel		;Prints the stats on the bottom of the screen
+	JSR waitTurn			;Wait timer
     LDA #$01
     BNE gameloop            ;loop
 
 gameOver
-	LDX #$FF	;color1 and color2 change the character colors to white all across the screen - Appendix E
+	LDX #$FF	;color3 and color4 change the character colors to white all across the screen - Appendix E
 color3
 	LDA #$1
 	STA $95FE,X
@@ -195,7 +195,7 @@ quitIntro
 	LDA #$01
 	STA cheatFlag
 quitIntro2
-    LDA $9111
+    LDA $9111			;Waits for release of all buttons to start game
     EOR #$FF
     BNE quitIntro2
     JSR clearscreen
@@ -326,14 +326,14 @@ updateBulletEnd
     RTS
 
 updatefallingobs
-    LDA fallingobsFlag
+    LDA fallingobsFlag			;Checking if an object is already on screen
     CMP #$01
     BNE updatefallingobsEnd
-    DEC fallingobsX
+    DEC fallingobsX				;Moves object left and down
     INC fallingobsY
     LDA fallingobsX
 	AND #$7F					;remove neg flag
-    CMP #$18
+    CMP #$18					;Removes object when it moves off screen, sets flag to 00
     BMI updatefallingobsEnd
     LDA #$00
     STA fallingobsFlag
@@ -373,9 +373,9 @@ tryUp
 	EOR #$FB		;XOR against bitmask
 	BNE tryDown
 	LDA shipcoY
-	CMP #$00
+	CMP #$00		;Won't move up if at top of screen
 	BEQ endUse
-	DEC shipcoY
+	DEC shipcoY		;Move the ship Y counter up
 	LDA #$00
 	BEQ endUse
 tryDown
@@ -383,9 +383,9 @@ tryDown
 	EOR #$F7		;XOR against bitmask
 	BNE tryLeft
 	LDA shipcoY
-	CMP #$15
+	CMP #$15		;Won't move down if at bottom of screen
 	BEQ endUse
-	INC shipcoY
+	INC shipcoY		;Move ship down
 	LDA #$00
 	BEQ endUse
 tryLeft
@@ -393,7 +393,7 @@ tryLeft
 	EOR #$EF		;XOR against bitmask
 	BNE tryRight
 	LDA shipcoX
-	CMP #$00
+	CMP #$00		;Don't move left if at edge of screen
 	BEQ endUse
 	DEC shipcoX
 	LDA #$00
@@ -403,7 +403,7 @@ tryRight
 	EOR #$7F		;XOR against bitmask
 	BNE endUse
 	LDA shipcoX
-	CMP #$15
+	CMP #$15		;Don't move right if at edge of screen
 	BEQ endUse
 	INC shipcoX
 	LDA #$00
@@ -420,25 +420,30 @@ spawn
 	LDX musicLoopOffset
 	LDA sonata,x
 	EOR randobyte
-	STA randobyte
+	STA randobyte	;End of random function
 	LDA randobyte
 	AND #$01F		;Make it 9 bits
 	CMP #$02		;If number is equal to 2, spawn a powerup
 	BEQ spawnpUP
 	CMP #$04		;If number is equal to 4, spawn falling obstacle
+	BEQ spawnObs
+	CMP #$06		;If number is equal to 6, spawn wall
 	BNE nospawn
+spawnWall
+	JMP nospawn
 spawnObs
-	LDA fallingobsFlag
+	LDA fallingobsFlag		;Make sure no falling object is on screen
 	CMP #$01
 	BEQ nospawn
-	LDX #$15
+	LDX #$15				;Move obstacle onto screen
 	LDY #$00
 	STX fallingobsX
 	STY fallingobsY
-	LDA #$01
+	LDA #$01				;Store the flag, indicating obstacle is on screen
 	STA fallingobsFlag
+	JMP nospawn
 spawnpUP
-	LDA powerUpFlag
+	LDA powerUpFlag			;Don't spawn if powerup is on screen
 	CMP #$01
 	BEQ nospawn
 	LDX #$15
@@ -446,18 +451,18 @@ spawnpUP
 	LDA drawDirection	;Deciding to draw in top tunnel or bottom tunnel
 	CMP #$01
 	BEQ powerOnb
-	LDA topset,x
+	LDA topset,x		;Add two to roof, so powerup is not in a wall
 	ADC #$02
-	STA powerUpY
+	STA powerUpY		;Move powerup on screen
 	JMP nospawn
 powerOnb
 	LDA topset,x
-	ADC #$02
+	ADC #$02			;Add two to floor, so powerup is not in wall
 	STA internum
 	LDA #$16
 	SEC
 	SBC internum
-	STA powerUpY
+	STA powerUpY		;Move powerup onscreen
 nospawn
 	CLC
 	RTS
@@ -500,7 +505,7 @@ rfupdate
 updatedone
     RTS
 
-algomain
+algomain			;Branches to correct algorithm, also updates at diff rates for diff algos
     LDA currLevel
     CMP #$01
     BNE checkAlgo2
@@ -532,8 +537,8 @@ noUpdate
 	RTS
 
 
-algo1
-    LDX #$14
+algo1						;Steady pattern, up either 1 or 2 until roof, then down
+    LDX #$14				;Nothing special
     LDA topset,x
     CLC
     CMP #$02
@@ -541,7 +546,7 @@ algo1
     CMP #$07
     BPL setDirectionUp
     BVC algo1Gen
-setDirectionDown
+setDirectionDown			;Setting direction variables
     LDA #$01
     STA drawDirection
     BVC algo1Gen
@@ -553,7 +558,7 @@ algo1Gen
     LDA drawDirection
     CMP #$01
     BEQ algo1GenDown
-    LDA topset,x
+    LDA topset,x			;Drawing upward sloped roof
     SEC
     SBC currSubLevel
     LDX #$15
@@ -562,7 +567,7 @@ algo1Gen
     ADC #$06
     STA emptyset,x
     BVC algo1done
-algo1GenDown
+algo1GenDown				;Drawing downward sloped roof
     LDA topset,x
     CLC
     ADC currSubLevel
@@ -574,9 +579,9 @@ algo1GenDown
 algo1done
     RTS
 
-algo2
-	LDX #$14
-	LDA topset,x
+algo2						;Same as algorithm1, except has randomness in two places
+	LDX #$14				;(1) Moves up 1 or up 2 depending on random, (2 or 3 in second sublevel)
+	LDA topset,x			;(2) Floor is either 5 or 6 subtracted from roof
 	CLC
 	CMP #$02
 	BMI setDirectionDown2
@@ -596,7 +601,7 @@ algo2Gen
 	CMP #$01
 	BEQ algo2GenDown
 	JSR getrng
-	STY internum
+	STY internum			;Generate upward sloping roof
 	LDA topset,x
 	SEC
 	SBC currSubLevel
@@ -607,19 +612,19 @@ algo2Gen
 	JSR getrng				;0 means add 6, 1 means add 4
 	LDX #$15
 	CPY #$01
-	BEQ add4
+	BEQ add5
 	LDA topset,x
 	CLC
-	ADC #$06
+	ADC #$06				;Floor is 6 away
 	STA emptyset,x
 	BVC algo2done
-add4
+add5						;Floor is 5 away
 	LDA topset,x
 	CLC
 	ADC #$05
 	STA emptyset,x
 	BVC algo2done
-algo2GenDown
+algo2GenDown				;Generate downward sloping roof
 	JSR getrng
 	STY internum
 	LDX #$15
@@ -633,15 +638,15 @@ algo2GenDown
 	JSR getrng
 	LDX #$15
 	CPY #$01
-	BEQ add4d
+	BEQ add5d
 	LDA topset,x
 	CLC
-	ADC #$06
+	ADC #$06				;Floor is 6 down
 	LDX #$15
 	STA emptyset,x
 	BVC algo2done
-add4d
-	LDA topset,x
+add5d
+	LDA topset,x			;Floor is 5 down
 	CLC
 	ADC #$05
 	LDX #$15
@@ -649,9 +654,9 @@ add4d
 algo2done
 	RTS
 
-algo3
-	LDX #$14
-	LDY topset,x
+algo3						;Simplest algorithm, no middle portion
+	LDX #$14				;Roof gently goes up or down
+	LDY topset,x			;Second sublevel is a tighter corridor
 	LDA currSubLevel
 	ASL
 	CLC
@@ -667,7 +672,7 @@ algo3
 	CPY internum
 	BPL setDirectionUp3
 	BVC algo3Gen
-setDirectionDown3
+setDirectionDown3				;Setting direction variable
 	LDA #$01
 	STA drawDirection
 	BVC algo3Gen
@@ -679,7 +684,7 @@ algo3Gen
 	LDA drawDirection
 	CMP #$01
 	BEQ algo3GenDown
-	LDA topset,x
+	LDA topset,x				;Draw upward sloping roof
 	SEC
 	SBC #$01
 	LDX #$15
@@ -687,7 +692,7 @@ algo3Gen
 	LDA #$0D
 	STA emptyset,x
 	BVC algo3done
-algo3GenDown
+algo3GenDown					;Draw downward sloping roof
 	LDA topset,x
 	CLC
 	ADC #$01
@@ -699,11 +704,11 @@ algo3done
 	RTS
 
 hitdetect
-	LDA cheatFlag
+	LDA cheatFlag			;Skip if cheats enabled
 	CMP #$01
 	BEQ noHit
-	JSR powerUpDetect
-	JSR obsDetect
+	JSR powerUpDetect		;Check if ship hit powerup
+	JSR obsDetect			;Check if ship hit falling obstacle
 	LDX shipcoX			;Load X
 	LDY shipcoY			;Load Y
 	CPY #$0B
@@ -715,7 +720,7 @@ hitdetect
 	LDA #$00
 	BEQ hitBottom
 hitTop
-	LDA topset,x
+	LDA topset,x		;Check if ship is between top and bottom
 	STA internum
 	CPY internum
 	BMI hitTrue
@@ -725,8 +730,8 @@ hitTop
 	BPL hitTrue
 	RTS
 hitBottom
-	LDA #$0C
-	CLC
+	LDA #$0C			;Check if ship is between top and bottom
+	CLC					;Extra instructions are for modifying X and Y, since the tunnel is mirrored
 	SBC emptyset,x
 	STA internum
 	CPY internum
@@ -743,15 +748,15 @@ hitTrue
 noHit
 	RTS
 
-powerUpDetect
+powerUpDetect				;Checks if shipX and shipY are equal to powerupX and Y
 	LDA powerUpX
 	CMP shipcoX
 	BNE noPUp
 	LDA powerUpY
 	CMP shipcoY
 	BNE noPUp
-	JSR addPickupToScore
-    JSR addPickupToAmmo
+	JSR addPickupToScore	;Add 20 points
+    JSR addPickupToAmmo		;Add 1 to ammo
 	LDA #$FF
 	STA powerUpX
 	LDA #$00
@@ -759,14 +764,14 @@ powerUpDetect
 noPUp
 	RTS
 
-obsDetect
+obsDetect					;Simply detects if shipX and Y are equal to obstacleX and Y
 	LDA shipcoX
 	CMP fallingobsX
 	BNE noObsHit
 	LDA shipcoY
 	CMP fallingobsY
 	BNE noObsHit
-	JSR gameOver
+	JSR gameOver			;Ends game if true
 noObsHit
 	RTS
 
@@ -815,27 +820,27 @@ bulletHitTrue
 	STA bulletFlag
     RTS
 
-colortop	            ;Changes color of char printed, Y val should be internum+1, X is internum+
-	CPX shipcoX
+colortop	            ;Changes color of char printed, called for each char on top of screen
+	CPX shipcoX			;If it is shipX and Y, color white
 	BNE bullett
 	CPY shipcoY
 	BEQ whitet
 bullett
-    CPX bulletX
+    CPX bulletX			;If at bulletX and Y, color white
     BNE powerUpt
     CPY bulletY
     BEQ whitet
-powerUpt
+powerUpt				;If at powerupX and Y, color yellow
     CPX powerUpX
     BNE fallingobst
     CPY powerUpY
     BEQ yellowt
-fallingobst
+fallingobst				;If at falling obstacleX and Y, color level color
     CPX fallingobsX
     BNE blackt
     CPY fallingobsY
     BEQ colort
-blackt
+blackt					;Checks if inside tunnel, colors black. Else, level color
 	CPY #$00
 	BEQ colort
 	LDA topset,x
@@ -855,7 +860,7 @@ blackt
 	ADC internum
 	TAX
 	LDA #$00
-	STA $9600,x			;Print character as
+	STA $9600,x			;Print character as black
 	RTS
 whitet
 	TXA
@@ -867,7 +872,7 @@ whitet
 	ADC internum
 	TAX
 	LDA #$01
-	STA $9600,x			;Print character as
+	STA $9600,x			;Print character as white
 	RTS
 colort
 	TXA
@@ -891,12 +896,12 @@ yellowt
 	ADC internum
 	TAX
 	LDA #$07
-	STA $9600,x			;Print character as level color
+	STA $9600,x			;Print character as yellow
 	RTS
 
-colorbottom	            ;Changes color of char printed
-	CPX shipcoX
-	BNE bulletb
+colorbottom	            ;Changes color of char printed for bottom of screen
+	CPX shipcoX			;Repetition of colortop, with slight modifications to
+	BNE bulletb			;account for mirrored X and Y
 	LDA shipcoY
 	CMP #$0B
 	BMI bulletb
@@ -998,7 +1003,7 @@ yellowb
 	ADC internum
 	TAX
 	LDA #$07
-	STA $96F2,x			;Print character as the yellow color
+	STA $96F2,x			;Print character as yellow
 	RTS
 
 fillscreen				;Keeps an X counter for moving horizontally across screen
@@ -1019,7 +1024,7 @@ fillcol
 	PHA
 	TYA
 	PHA
-	JSR colortop
+	JSR colortop		;Jump to the coloring for each char
 	PLA
 	TAY
 	PLA
@@ -1090,13 +1095,13 @@ cont
 	BMI fillcol
 	RTS
 
-fillbottom
+fillbottom				;Refer to filltop, code is slightly modified for mirrored tunnel
 fillcolb
 	TXA
 	PHA
 	TYA
 	PHA
-	JSR colorbottom
+	JSR colorbottom		;Jump to coloring function
 	PLA
 	TAY
 	PLA
@@ -1214,7 +1219,7 @@ mul22                   ;assume input is y. F(y) = y*22 = x1 + x2 + x3
     STA internum
     RTS
 
-addPickupToScore
+addPickupToScore		;Used to add 20 to score when powerup is hit
     LDX #$00
 pickupScoreLoop
     JSR addTenPickScore
@@ -1229,13 +1234,13 @@ addTenPickScore
     STA currScoreTens
     RTS
 
-addPickupToAmmo
+addPickupToAmmo			;Add one to ammo counter when powerup is hits
     LDA bulletAmmoOnes
     CMP #$09
     BEQ addToAmmoTens
     INC bulletAmmoOnes
     BVC endPickupToAmmo
-addToAmmoTens
+addToAmmoTens			;Adds one to the tens place if ones place is 9
     LDA #$00
     STA bulletAmmoOnes
     LDA bulletAmmoTens
@@ -1301,7 +1306,7 @@ addTThousToScore
 updateScoreEnd
     RTS
 
-updateLevel
+updateLevel				;Adds to the level
     LDA #$00
     STA levelCounter
     LDA currSubLevel
@@ -1499,6 +1504,13 @@ fallingobsY
     .BYTE $00
 fallingobsFlag
     .BYTE $01
+
+staticobsX
+	.BYTE $FF
+staticobsY
+	.BYTE $FF, $FF, $FF, $FF, $FF, $FF
+staticobsFlag
+	.BYTE $00
 
 depth
     .WORD $00
