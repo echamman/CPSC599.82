@@ -14,6 +14,11 @@ Command, over and out.
 ================================================================
 
 Design of our game comes from similar tunnel runner games.
+Controls & design:
+-Move in all 4 directions
+-Fire bullets
+-Power-ups add 1 bullet and 20 points, advancing you through levels faster
+-Crashing into terrain, walls, or falling obstacles ends the game
 Features:
 -3 different generation algorithms for the 3 levels
 	-Sub levels contain more extreme versions of generation
