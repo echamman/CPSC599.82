@@ -881,7 +881,7 @@ fallingobsb
 	CPY internum
 	BEQ colorb
 blackb
-	CPY #$0B
+	CPY #$0A
 	BEQ colorb
 	LDA #$0C
 	CLC
