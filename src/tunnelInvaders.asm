@@ -778,6 +778,8 @@ fallingobst
     CPY fallingobsY
     BEQ colort
 blackt
+	CPY #$00
+	BEQ colort
 	LDA topset,x
 	STA internum
 	CPY internum
@@ -879,6 +881,8 @@ fallingobsb
 	CPY internum
 	BEQ colorb
 blackb
+	CPY #$0B
+	BEQ colorb
 	LDA #$0C
 	CLC
 	SBC emptyset,x
