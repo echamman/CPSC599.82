@@ -69,7 +69,36 @@ color2	LDA #$1
 
     JSR clearscreen
 
-hitstart			      ;Prints 'PRESS START' - Appendix E
+hitstart			      ;Prints the start screen - Appendix E
+	LDA #$14	;T
+	STA $1E46
+	LDA #$15	;U
+	STA $1E47
+	LDA #$0E	;N
+	STA $1E48
+	LDA #$0E	;N
+	STA $1E49
+	LDA #$05	;E
+	STA $1E4A
+	LDA #$0C	;L
+	STA $1E4B
+	LDA #$09	;I
+	STA $1E4D
+	LDA #$0E	;N
+	STA $1E4E
+	LDA #$16	;V
+	STA $1E4F
+	LDA #$01	;A
+	STA $1E50
+	LDA #$04	;D
+	STA $1E51
+	LDA #$05	;E
+	STA $1E52
+	LDA #$12	;R
+	STA $1E53
+	LDA #$13	;S
+	STA $1E54
+
 	LDA #$10    ;P
 	STA $1EB6
 	LDA #$12    ;R
@@ -78,20 +107,23 @@ hitstart			      ;Prints 'PRESS START' - Appendix E
 	STA $1EB8
 	LDA #$13    ;S
 	STA $1EB9
-	LDA #$13
+	LDA #$13	;S
 	STA $1EBA
-	LDA #$20
-	STA $1EBB
-	LDA #$13
+	LDA #$6		;F
 	STA $1EBC
-	LDA #$14
+	LDA #$9		;I
 	STA $1EBD
-	LDA #$1
+	LDA #$12	;R
 	STA $1EBE
-	LDA #$12
+	LDA #$5		;E
 	STA $1EBF
-	LDA #$14
-	STA $1EC0
+
+	LDA #$02
+	STA $96BC
+	STA $96BD
+	STA $96BE
+	STA $96BF
+
 
 	LDA #$00		;port input mask
 	STA $9113		;store to VIA#1 DDR
