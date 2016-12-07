@@ -42,12 +42,70 @@ gameloop            ;check input,update data, draw data to screen
     BNE gameloop            ;loop
 
 gameOver
+	LDX #$FF	;color1 and color2 change the character colors to white all across the screen - Appendix E
+color3
+	LDA #$1
+	STA $95FE,X
+	DEX
+	CPX #$0
+	BNE color3
+
+	LDX #$FF
+color4
+	LDA #$1
+	STA $9700,X
+	DEX
+	CPX #$0
+	BNE color4
 	JSR clearscreen
-	LDA #$0
+
+	LDA #$07   ;G
+	STA $1EB6
+	LDA #$01    ;A
+	STA $1EB7
+	LDA #$0D    ;M
+	STA $1EB8
+	LDA #$05    ;E
+	STA $1EB9
+	LDA #$0F	;O
+	STA $1EBB
+	LDA #$16	;V
+	STA $1EBC
+	LDA #$5		;E
+	STA $1EBD
+	LDA #$12	;R
+	STA $1EBE
+	;Print Score
+	LDA #$13	;S
+	STA $1E47
+	LDA #$03	;C
+	STA $1E48
+	LDA #$0F	;O
+	STA $1E49
+	LDA #$12	;R
+	STA $1E4A
+	LDA #$05	;E
+	STA $1E4B
+	CLC
+	LDA currScoreTThous		;0 //currScoreHundredThousands
+	ADC #$30
+	STA $1E4D
+	LDA currScoreThous		;0 //currScoreTenThousands
+	ADC #$30
+	STA $1E4E
+	LDA currScoreHuns		;0 //currScoreOnes
+	ADC #$30
+	STA $1E4F
+	LDA currScoreTens		;0 //currScoreTens
+	ADC #$30
+	STA $1E50
+	LDA currScoreOnes       ;0 //currScoreHuns
+	ADC #$30
+	STA $1E51
 gameOver1
     LDA #$00
     STA $900E
-	BEQ gameOver
+	BEQ gameOver1
 
 intro
 	LDA #$8		;Storing 8 into 36879, full black screen
@@ -1365,7 +1423,7 @@ rngloop
 
 ;=============================================================================
 ;DATA
-    org $19FF        ;dec  6144
+    org $1B00        ;dec  6144
 
 inputval
 	.BYTE $00
