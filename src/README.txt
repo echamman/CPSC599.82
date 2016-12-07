@@ -25,4 +25,5 @@ Features:
 -Randomness in level 2 generation and item spawns (obstacles/power-ups)
 -Fully functional and responsive hit detection of the ship as well as bullets
 -Joystick controls
--Cheat code -- Press down instead of fire to remove hit detection (for easier marking)
+-Cheat code -- Press down at start screen instead of fire to remove hit detection 
+(for easier marking)
