@@ -148,7 +148,7 @@ hitstart			      ;Prints the start screen - Appendix E
 
 	LDA #$02
 	STA $96BC
-	STA $96BD
+	STA $96BD   ;makes 'FIRE' red
 	STA $96BE
 	STA $96BF
 
@@ -180,7 +180,7 @@ print1
 	CPX #$0
 	BNE print1
 	LDX #$FF
-print2
+print2              ;clearing bottom half of the screen
     LDA #$20
 	STA $1EFD,X
 	DEX
@@ -215,14 +215,14 @@ storeship1
     LDA ship,x      ;Chatset location 27 or dec 7440-7448. 9 char change
     STA $1D10,x
     INX
-    CPX #$08       ;dec 72 = 1*8
+    CPX #$08       ;dec 8 = 1*8
     BNE storeship1
     LDX #$00
 block              ;put block char in to screen code 0
     LDA $8330,x
     STA $1C00,x
     INX
-    CPX #$08
+    CPX #$08        ;dec 8 = 1*8
     BNE block
 powerup_obj
     LDX #$0
@@ -316,13 +316,13 @@ updatefallingobsEnd
 musicLoop
   	LDA #$0F		        ;load volume 15
 	STA $900E		        ;store volume                      ;volume
-    LDX musicLoopOffset
+    LDX #$00
     LDA sonata,X		;load tone value
 	STA $900B		    ;store to speaker 2
     CPX #$34            ;number of notes
     BNE musicLoop1
     LDX #$00
-    STX musicLoopOffset
+    STX musicLoopOffset 
     RTS
 musicLoop1
     INX
@@ -469,10 +469,10 @@ nospawn
 ;3) store col = col + 1
 
 updatedata
-    JSR updateBullet
-    JSR updatefallingobs
-	JSR updateWalls
-	DEC powerUpX
+    JSR updateBullet         ;move bullet appropriately
+    JSR updatefallingobs     ;moves falling objects
+	JSR updateWalls         ;update walls
+	DEC powerUpX            ;update powerups
 	LDA powerUpX
 	AND #$7F			;Remove negative flag if it goes from 0 to 255
 	CMP #$17
@@ -482,14 +482,14 @@ updatedata
     DEC powerUpFlag
 	JMP skipPUps
 ponScreen
-	LDA #$01
+	LDA #$01                ;when powerup is onscreen store 1 in its flag
 	STA powerUpFlag
 skipPUps
     LDX #$01
     LDY #$00
 
 rfupdate
-    LDA topset,x
+    LDA topset,x            ;this shifts all the data for the tunnel floor and roof left one
     STA topset,y
     LDA emptyset,x
     STA emptyset,y
@@ -497,22 +497,22 @@ rfupdate
     INY
     CPX #$16
     BMI rfupdate
-    JSR algomain
+    JSR algomain            ;then find the last column
 updatedone
     RTS
 
 updateWalls
-	LDA staticobsFlag
-	CMP #$01
-	BNE noWallUp
-	DEC staticobsX
-	LDA staticobsX
+	LDA staticobsFlag       ;load if wall flag to see if on screen
+	CMP #$01                
+	BNE noWallUp            ; if onscreen exit
+	DEC staticobsX          ; else update it
+	LDA staticobsX      
 	AND #$7F			;Remove negative flag if it goes from 0 to 255
 	CMP #$17
 	BMI noWallUp
 	;LDA #$00===========================================CHANGE
 	;STA staticobsFlag
-    DEC staticobsFlag
+    DEC staticobsFlag       ;set flag to 0 when off screen
 noWallUp
 	RTS
 
