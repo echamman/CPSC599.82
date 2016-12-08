@@ -59,7 +59,7 @@ color4
 	BNE color4
 	JSR clearscreen
 
-	LDA #$07   ;G
+	LDA #$07    ;G
 	STA $1EB6
 	LDA #$01    ;A
 	STA $1EB7
@@ -430,6 +430,8 @@ spawn
 	CMP #$06		;If number is equal to 6, spawn wall
 	BNE nospawn
 spawnWall
+    ;check level
+    ;
 	JMP nospawn
 spawnObs
 	LDA fallingobsFlag		;Make sure no falling object is on screen
@@ -837,9 +839,25 @@ powerUpt				;If at powerupX and Y, color yellow
     BEQ yellowt
 fallingobst				;If at falling obstacleX and Y, color level color
     CPX fallingobsX
-    BNE blackt
+    BNE staticobst
     CPY fallingobsY
     BEQ colort
+staticobst
+    CPX staticobsX
+    BNE blackt   
+    TXA
+    PHA
+    LDX #$00
+STOBS1
+    LDA staticobsY,x
+    STA internum
+    CPY internum
+    BEQ pullcolort
+    INX
+    CPX #$0E
+    BNE STOBS1
+    PLA
+    TAX
 blackt					;Checks if inside tunnel, colors black. Else, level color
 	CPY #$00
 	BEQ colort
@@ -874,6 +892,10 @@ whitet
 	LDA #$01
 	STA $9600,x			;Print character as white
 	RTS
+    
+pullcolort
+    PLA
+    TAX     
 colort
 	TXA
 	STY internum
@@ -909,7 +931,8 @@ colorbottom	            ;Changes color of char printed for bottom of screen
 	SBC #$0A
 	STA internum
 	CPY internum
-	BEQ whiteb
+	BNE bulletb
+    JMP whiteb
 bulletb
 	CPX bulletX
 	BNE powerUpb
@@ -931,9 +954,21 @@ powerUpb
 	SBC #$0A
 	STA internum
 	CPY internum
-	BEQ yellowb
+    BNE fallingobsb
+    JMP yellowb
 fallingobsb
 	CPX fallingobsX
+	BNE staticobsb
+	LDA fallingobsY
+	CMP #$0B
+	BMI staticobsb
+	CLC
+	SBC #$0A
+	STA internum
+	CPY internum
+	BEQ colorb
+staticobsb ;===================================================check all y's
+	CPX staticobsX
 	BNE blackb
 	LDA fallingobsY
 	CMP #$0B
@@ -1050,15 +1085,31 @@ drawbullet1
     CPY bulletY
     BEQ drawbullet      ;if yes draw bullet
 drawPUp1				;Check to see if we want to draw Power up
-	CPX powerUpX         ;check to see if we want to draw bullet
+	CPX powerUpX         
 	BNE drawfallingobs1
 	CPY powerUpY
 	BEQ drawPUp	     ;if yes draw bullet
 drawfallingobs1				;Check to see if we want to draw Power up
-	CPX fallingobsX         ;check to see if we want to draw bullet
-	BNE drawBlock
+	CPX fallingobsX         
+	BNE drawstaticobs1
 	CPY fallingobsY
 	BEQ drawfallingobs	     ;if yes draw bullet
+drawstaticobs1				;Check to see if we want to draw wall
+	CPX staticobsX       
+	BNE drawBlock
+    TXA
+    PHA
+    LDX #$00
+DSOBS1
+    LDA staticobsY,x
+    STA internum
+    CPY internum
+	BEQ drawstaticobs	     ;if yes draw wall
+    INX
+    CPX #$0E
+    BNE DSOBS1   
+    PLA
+    TAX   
 drawBlock
 	PLA
 	TAY
@@ -1082,7 +1133,16 @@ drawfallingobs
 	TAY
 	LDA #$24            ; falling obs  block
 	STA $1E00,y
-	JMP cont
+	JMP cont 
+drawstaticobs
+    PLA
+    TAX  
+    PLA
+	TAY
+	LDA #$25            ; falling obs  block
+	STA $1E00,y
+	JMP cont 
+    
 drawship
 	PLA
 	TAY
@@ -1092,7 +1152,9 @@ cont
 	LDY depth
 	INY
 	CPY #$0B			;Compare Y to 11
-	BMI fillcol
+	BPL cont1
+    JMP fillcol
+cont1
 	RTS
 
 fillbottom				;Refer to filltop, code is slightly modified for mirrored tunnel
@@ -1506,9 +1568,12 @@ fallingobsFlag
     .BYTE $01
 
 staticobsX
-	.BYTE $FF
+	.BYTE $12
 staticobsY
-	.BYTE $FF, $FF, $FF, $FF, $FF, $FF
+	;.BYTE $FF, $FF, $FF, $FF, $FF, $FF, $FF
+	;.BYTE $FF, $FF, $FF, $FF, $FF, $FF, $FF
+	.BYTE $01, $02, $03, $04, $05, $06, $07
+	.BYTE $08, $09, $0A, $0B, $0C, $0D, $0E
 staticobsFlag
 	.BYTE $00
 
