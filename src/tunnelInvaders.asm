@@ -943,7 +943,8 @@ bulletb
 	SBC #$0A
 	STA internum
 	CPY internum
-	BEQ whiteb
+	BNE powerUpb
+	JMP whiteb
 powerUpb
 	CPX powerUpX
 	BNE fallingobsb
@@ -967,17 +968,27 @@ fallingobsb
 	STA internum
 	CPY internum
 	BEQ colorb
-staticobsb ;===================================================check all y's
+staticobsb 
 	CPX staticobsX
 	BNE blackb
-	LDA fallingobsY
-	CMP #$0B
-	BMI blackb
+    TXA
+    PHA
+    LDX #$00
+staticobsb1
+	LDA staticobsY,x
+	CMP #$0B                            ;if its A - 11 is negative the block is in the top half so dont color 
+	BMI pullblackb
 	CLC
 	SBC #$0A
 	STA internum
 	CPY internum
-	BEQ colorb
+	BEQ pullcolorb
+    INX
+    CPX #$0E
+    BNE staticobsb1
+pullblackb
+    PLA
+    TAX
 blackb
 	CPY #$0A
 	BEQ colorb
@@ -1016,6 +1027,10 @@ whiteb
 	LDA #$01
 	STA $96F2,x			;Print character as white
 	RTS
+    
+pullcolorb
+    PLA
+    TAX    
 colorb
 	TXA
 	STY internum
@@ -1213,15 +1228,36 @@ drawPUp1b
 	BEQ drawPUpb
 drawfallingobs1b
 	CPX fallingobsX
-	BNE drawBlockb
+	BNE drawstaticobs1b
 	LDA fallingobsY
 	CMP #$0B
-	BMI drawBlockb
+	BMI drawstaticobs1b
 	CLC
 	SBC #$0A
 	STA internum
 	CPY internum
 	BEQ drawfallingobsb
+drawstaticobs1b ;==============================================
+    CPX staticobsX
+    BNE drawBlockb
+    TXA
+    PHA
+    LDX #$00
+drawstaticobsloop
+    LDA staticobsY,x
+    CMP #$0B
+    BMI pulldrawBlockb
+    CLC
+    SBC #$0A
+    STA internum
+    CPY internum
+    BEQ drawstaticobsb
+    INX
+    CPX #$0E
+    BNE drawstaticobsloop
+pulldrawBlockb
+    PLA
+    TAX
 drawBlockb
 	PLA
 	TAY
@@ -1250,6 +1286,14 @@ drawfallingobsb
     PLA
     TAY
     LDA #$24			;Draw powerup
+    STA $1EF2,y
+    JMP contb
+drawstaticobsb
+    PLA
+    TAX
+    PLA
+    TAY
+    LDA #$25			;Draw powerup
     STA $1EF2,y
 contb
 	LDY depth
@@ -1490,7 +1534,7 @@ rngloop
 
 ;=============================================================================
 ;DATA
-    org $1B00        ;dec  6144
+    org $1B1D        ;dec  6144
 
 inputval
 	.BYTE $00
@@ -1572,8 +1616,8 @@ staticobsX
 staticobsY
 	;.BYTE $FF, $FF, $FF, $FF, $FF, $FF, $FF
 	;.BYTE $FF, $FF, $FF, $FF, $FF, $FF, $FF
-	.BYTE $01, $02, $03, $04, $05, $06, $07
-	.BYTE $08, $09, $0A, $0B, $0C, $0D, $0E
+	.BYTE $11, $12, $13, $14, $15, $16, $17
+	.BYTE $18, $19, $1A, $1B, $1C, $1D, $1E
 staticobsFlag
 	.BYTE $00
 
