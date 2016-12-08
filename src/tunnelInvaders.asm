@@ -41,7 +41,7 @@ gameloop            ;check input,update data, draw data to screen
     ;LDA #$01===========================================CHANGE
     ;BNE gameloop            ;loop
     JMP gameloop
-    
+
 gameOver
 	LDX #$FF	;color3 and color4 change the character colors to white all across the screen - Appendix E
 color3
@@ -203,16 +203,16 @@ quitIntro2
     JSR clearscreen
     RTS
 
-clearscreen
+clearscreen         ;Clears all chars on screen
 	LDX #$FF	    ;print1 and print2 are printing ' ' to the screen - Appendix E
 print1
     LDA #$20        ;#$20 is space
-	STA $1DFE,X
-	DEX
-	CPX #$0
+	STA $1DFE,X     ;beginning char location
+	DEX             
+	CPX #$00
 	BNE print1
 	LDX #$FF
-print2
+print2              ;bottom set of chars on screen
     LDA #$20
 	STA $1EFD,X
 	DEX
@@ -247,17 +247,17 @@ storeship1
     LDA ship,x      ;Chatset location 27 or dec 7440-7448. 9 char change
     STA $1D10,x
     INX
-    CPX #$08       ;dec 72 = 1*8
+    CPX #$08       ;dec 8 = 1*8
     BNE storeship1
     LDX #$00
 block              ;put block char in to screen code 0
     LDA $8330,x
     STA $1C00,x
     INX
-    CPX #$08
+    CPX #$08        ;dec 8 = 1*8
     BNE block
 powerup_obj
-    LDX #$0
+    LDX #$00
 powerup1
     LDA powerup,x      ;Chatset location 28 or dec 7449-7456
     STA $1D18,x
@@ -265,12 +265,12 @@ powerup1
     CPX #$08       ;dec 8 = 1*8
     BNE powerup1
 falling_obs_obj
-    LDX #$0
+    LDX #$00
 fallingobs1
     LDA fallingobs,x      ;Chatset location 29 or dec 7457-7464
     STA $1D20,x
     INX
-    CPX #$08       ;dec 8 = 1*8
+    CPX #$08              ;dec 8 = 1*8
     BNE fallingobs1
 static_obs_obj
     LDX #$0
@@ -278,7 +278,7 @@ staticobs1
     LDA staticobs,x      ;Chatset location 30 or dec 7465-7472
     STA $1D28,x
     INX
-    CPX #$08       ;dec 8 = 1*8
+    CPX #$08        ;dec 8 = 1*8
     BNE staticobs1
 bullet_obj
     LDX #$0
@@ -305,8 +305,9 @@ fireBullet
     STA bulletAmmoOnes  ;store 10 for immdeiate decriment
 continueToFire
     DEC bulletAmmoOnes  ;dec ammo by 1
-    LDA #$01
-    STA bulletFlag      
+    LDA #$01;===========================================CHANGE
+    STA bulletFlag      ;set flag to 1 to say bullet is on screen
+    ;INC bulletFlag
     LDA shipcoX         ;load current ship location X
     STA bulletX         ;set original location of bullet
     LDA shipcoY         ;load current ship location Y
@@ -331,10 +332,10 @@ updateBulletEnd
 updatefallingobs
     LDA fallingobsFlag			;Checking if an object is already on screen
     CMP #$01
-    BNE updatefallingobsEnd
+    BNE updatefallingobsEnd     ;else jump over
     DEC fallingobsX				;Moves object left and down
-    INC fallingobsY
-    LDA fallingobsX
+    INC fallingobsY             ; move down screen
+    LDA fallingobsX         
 	AND #$7F					;remove neg flag
     CMP #$18					;Removes object when it moves off screen, sets flag to 00
     BMI updatefallingobsEnd
@@ -347,18 +348,18 @@ updatefallingobsEnd
 
 musicLoop
   	LDA #$0F		        ;load volume 15
-	STA $900E		        ;store volume                      ;volume
-    LDX musicLoopOffset
+	STA $900E		        ;store volume  
+    LDX #$00
     LDA sonata,X		;load tone value
 	STA $900B		    ;store to speaker 2
     CPX #$34            ;number of notes
-    BNE musicLoop1
-    LDX #$00
-    STX musicLoopOffset
+    BNE musicLoop1      
+    LDA #$00            ;start loop again
+    STA musicLoopOffset
     RTS
 musicLoop1
     INX
-    STX musicLoopOffset
+    STX musicLoopOffset ;++
     RTS
 
 useInput
@@ -584,7 +585,7 @@ noUpdate
 algo1						;Steady pattern, up either 1 or 2 until roof, then down
     LDX #$14				;Nothing special
     LDA topset,x
-    CLC
+    ;CLC===========================================CHANGE
     CMP #$02
     BMI setDirectionDown
     CMP #$07
@@ -628,7 +629,7 @@ algo1done
 algo2						;Same as algorithm1, except has randomness in two places
 	LDX #$14				;(1) Moves up 1 or up 2 depending on random, (2 or 3 in second sublevel)
 	LDA topset,x			;(2) Floor is either 5 or 6 subtracted from roof
-	CLC
+	;CLC
 	CMP #$02
 	BMI setDirectionDown2
 	CMP #$08
@@ -835,18 +836,17 @@ wallDetect					;Checks if you've hit a wall
 	CMP staticobsX
 	BNE noStHit
 	LDX #$00
-wallHitL
+wallHitL					;Check all wall Y values
 	LDA staticobsY,x
 	CMP shipcoY
 	BEQ wallHitT			;Wall hit true
 	INX
 	CPX #$0E
 	BMI wallHitL
-	JMP noStHit
-wallHitT
-	JMP gameOver
 noStHit
 	RTS
+wallHitT
+	JMP gameOver
 
 
 bulletdetect
@@ -1074,7 +1074,7 @@ staticobsb              ;colour walls on lower half
     LDX #$00
 staticobsb1
 	LDA staticobsY,x
-	;CMP #$0B                            ;if its A - 11 is negative the block is in the top half so dont color 
+	;CMP #$0B                            ;if its A - 11 is negative the block is in the top half so dont color
 	;BMI pullblackb
 	CLC
 	SBC #$0A
@@ -1210,7 +1210,7 @@ drawfallingobs1				;Check to see if we want to draw Power up
 drawstaticobs1				;Check to see if we want to draw wall
 	CPX staticobsX
 	BNE drawBlock
-    LDA topset,x 
+    LDA topset,x
     STA internum
     CPY internum            ;check if y value is less than the topset,x
     BMI drawBlock
@@ -1654,7 +1654,8 @@ rngloop
 
 ;=============================================================================
 ;DATA
-    org $1B75       ;dec  ####
+
+    org $1B71       ;dec  ####
 
 currTime
 	.BYTE #$00
