@@ -38,9 +38,10 @@ gameloop            ;check input,update data, draw data to screen
 	JSR updateScore		;Updates score based on time
 	JSR printScoreLevel		;Prints the stats on the bottom of the screen
 	JSR waitTurn			;Wait timer
-    LDA #$01
-    BNE gameloop            ;loop
-
+    ;LDA #$01===========================================CHANGE
+    ;BNE gameloop            ;loop
+    JMP gameloop
+    
 gameOver
 	LDX #$FF	;color3 and color4 change the character colors to white all across the screen - Appendix E
 color3
@@ -192,8 +193,9 @@ quitIntro
 	LDA $9111
 	EOR #$F7			;Check if movement down, gives cheat flag
 	BNE quitIntro
-	LDA #$01
-	STA cheatFlag
+	;LDA #$01===========================================CHANGE
+	;STA cheatFlag
+    INC cheatFlag
 quitIntro2
     LDA $9111			;Waits for release of all buttons to start game
     EOR #$FF
@@ -303,8 +305,9 @@ fireBullet
     STA bulletAmmoOnes  ;store 10 for immdieiate decriment
 continueToFire
     DEC bulletAmmoOnes  ;dec ammo by 1
-    LDA #$01
-    STA bulletFlag      ;set flag to 1 to say bullet is on screen
+    ;LDA #$01===========================================CHANGE
+    ;STA bulletFlag      ;set flag to 1 to say bullet is on screen
+    INC bulletFlag
     LDA shipcoX         ;load current ship location X
     STA bulletX         ;set original location of bullet
     LDA shipcoY         ;load current ship location Y
@@ -418,7 +421,7 @@ endUse
 	RTS
 
 spawn
-	LDX #00
+	LDX #$00
 	STX randobyte	;getrng not random in this instance, use this for randomness
 	LDA currScoreOnes
 	EOR randobyte
@@ -436,22 +439,24 @@ spawn
 	CMP #$06		;If number is equal to 6, spawn wall
 	BNE nospawn
 spawnWall
-	LDA staticobsFlag
+	LDA staticobsFlag       ;check if walls are on screen
 	CMP #$01
 	BEQ nospawn
 	LDA currLevel
 	CMP #$03
 	BNE nospawn
-	LDY #$02
+	LDY #$04
 	LDX #$00
 wallYwrite
+    TYA
 	STA staticobsY,x
 	INY
 	INX
 	CPX #$0E
 	BNE wallYwrite
-	LDX #$15
-	STX staticobsX
+    INC staticobsFlag       ;sets flags saying walls are on screen
+	LDA #$15
+	STA staticobsX
 	JMP nospawn
 spawnObs
 	LDA fallingobsFlag		;Make sure no falling object is on screen
@@ -461,8 +466,9 @@ spawnObs
 	LDY #$00
 	STX fallingobsX
 	STY fallingobsY
-	LDA #$01				;Store the flag, indicating obstacle is on screen
-	STA fallingobsFlag
+	;LDA #$01				;Store the flag, indicating obstacle is on screen
+	;STA fallingobsFlag ===========================================CHANGE
+    INC fallingobsFlag
 	JMP nospawn
 spawnpUP
 	LDA powerUpFlag			;Don't spawn if powerup is on screen
@@ -504,13 +510,14 @@ updatedata
 	AND #$7F			;Remove negative flag if it goes from 0 to 255
 	CMP #$17
 	BMI ponScreen
-	;LDA #$00
-	;STA powerUpFlag===========================================CHANGE
-    DEC powerUpFlag
+	LDA #$00
+	STA powerUpFlag;===========================================CHANGE
+    ;DEC powerUpFlag
 	JMP skipPUps
 ponScreen
-	LDA #$01
+	LDA #$01;===========================================CHANGE
 	STA powerUpFlag
+    ;INC powerUpFlag
 skipPUps
     LDX #$01
     LDY #$00
@@ -585,12 +592,14 @@ algo1						;Steady pattern, up either 1 or 2 until roof, then down
     BPL setDirectionUp
     BVC algo1Gen
 setDirectionDown			;Setting direction variables
-    LDA #$01
-    STA drawDirection
+    ;LDA #$01
+    ;STA drawDirection===========================================CHANGE
+    INC drawDirection
     BVC algo1Gen
 setDirectionUp
-    LDA #$00
-    STA drawDirection
+    ;LDA #$00===========================================CHANGE
+    ;STA drawDirection
+    DEC drawDirection
     BVC algo1Gen
 algo1Gen
     LDA drawDirection
@@ -627,12 +636,14 @@ algo2						;Same as algorithm1, except has randomness in two places
 	BPL setDirectionUp2
 	BVC algo2Gen
 setDirectionDown2
-	LDA #$01
-	STA drawDirection
+	;LDA #$01===========================================CHANGE
+	;STA drawDirection
+    INC drawDirection
 	BVC algo2Gen
 setDirectionUp2
-	LDA #$00
-	STA drawDirection
+	;LDA #$00===========================================CHANGE
+	;STA drawDirection
+    DEC drawDirection
 	BVC algo2Gen
 algo2Gen
 	LDA drawDirection
@@ -711,12 +722,14 @@ algo3						;Simplest algorithm, no middle portion
 	BPL setDirectionUp3
 	BVC algo3Gen
 setDirectionDown3				;Setting direction variable
-	LDA #$01
-	STA drawDirection
+	;LDA #$01===========================================CHANGE
+	;STA drawDirection
+    INC drawDirection
 	BVC algo3Gen
 setDirectionUp3
-	LDA #$00
-	STA drawDirection
+	;LDA #$00===========================================CHANGE
+	;STA drawDirection
+    DEC drawDirection
 	BVC algo3Gen
 algo3Gen
 	LDA drawDirection
@@ -886,6 +899,11 @@ bulletHitTrue
 bulletWall
 	LDA bulletX
 	CMP staticobsX
+    BEQ bullHitL
+    LDX staticobsX
+    STX internum
+    DEC internum
+    CMP internum
 	BNE noBulHit
 	LDX #$00
 bullHitL
@@ -1637,7 +1655,7 @@ rngloop
 
 ;=============================================================================
 ;DATA
-    org $1B74       ;dec  ####
+    org $1B75       ;dec  ####
 
 currTime
 	.BYTE #$00
@@ -1647,7 +1665,7 @@ currTurn
 ;levelCounter
 ;    .BYTE $00
 currLevel
-    .BYTE $03
+    .BYTE $01
 currSubLevel
     .BYTE $01
 
@@ -1712,12 +1730,11 @@ fallingobsFlag
     .BYTE $01
 
 staticobsX
-	.BYTE $12
+	.BYTE $15
 staticobsY
 	.BYTE $FF, $FF, $FF, $FF, $FF, $FF, $FF
 	.BYTE $FF, $FF, $FF, $FF, $FF, $FF, $FF
-	;.BYTE $05, $12, $13, $14, $15, $16, $17
-	;.BYTE $10, $19, $1A, $1B, $1C, $1D, $1E
+
 staticobsFlag
 	.BYTE $00
 
