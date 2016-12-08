@@ -1,5 +1,5 @@
 ;The full game
-;STUB 4096-4110; Code 4110-6144; DATA 6144-7168; Charset 7168-7680
+;STUB 4096-4110; Code 4110-6950; DATA 6950-7168; Charset 7168-7680
 	processor 6502
 
 	seg
@@ -1553,7 +1553,7 @@ rngloop
 
 ;=============================================================================
 ;DATA
-    org $1B26       ;dec  ####
+    org $1B26       ;dec  6950
 
 currTime
 	.BYTE #$00
