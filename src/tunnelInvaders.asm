@@ -1636,7 +1636,7 @@ hold
 	BNE hold
 	RTS
 
-;Needs further debugging, causes glitches in levels
+;Chooses 1 or 0 randomly
 getrng
 	LDY currScoreOnes
 	LDA $00A2
