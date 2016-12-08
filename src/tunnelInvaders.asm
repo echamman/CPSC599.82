@@ -320,8 +320,9 @@ updateBullet
     LDA bulletX             ;
     CMP #$18                ;check to see if offscreen
     BMI updateBulletEnd     ;if not end
-    LDA #$00                ;else store that it is offscreen
-    STA bulletFlag
+    ;LDA #$00                ;else store that it is offscreen
+    ;STA bulletFlag===========================================CHANGE
+    DEC bulletFlag
 updateBulletEnd
     RTS
 
@@ -335,8 +336,9 @@ updatefallingobs
 	AND #$7F					;remove neg flag
     CMP #$18					;Removes object when it moves off screen, sets flag to 00
     BMI updatefallingobsEnd
-    LDA #$00
-    STA fallingobsFlag
+    ;LDA #$00===========================================CHANGE
+    ;STA fallingobsFlag
+    DEC fallingobsFlag
 updatefallingobsEnd
     RTS
 
@@ -376,8 +378,9 @@ tryUp
 	CMP #$00		;Won't move up if at top of screen
 	BEQ endUse
 	DEC shipcoY		;Move the ship Y counter up
-	LDA #$00
-	BEQ endUse
+	;LDA #$00
+	;BEQ endUse===========================================CHANGE
+    JMP endUse
 tryDown
 	LDA $9111		;load joystick input
 	EOR #$F7		;XOR against bitmask
@@ -386,8 +389,9 @@ tryDown
 	CMP #$15		;Won't move down if at bottom of screen
 	BEQ endUse
 	INC shipcoY		;Move ship down
-	LDA #$00
-	BEQ endUse
+	;LDA #$00===========================================CHANGE
+	;BEQ endUse
+    JMP endUse
 tryLeft
 	LDA $9111		;load joystick input
 	EOR #$EF		;XOR against bitmask
@@ -396,8 +400,9 @@ tryLeft
 	CMP #$00		;Don't move left if at edge of screen
 	BEQ endUse
 	DEC shipcoX
-	LDA #$00
-	BEQ endUse
+	;LDA #$00
+	;BEQ endUse===========================================CHANGE
+    JMP endUse
 tryRight
 	LDA $9120		;load joystick input (VIA2)
 	EOR #$7F		;XOR against bitmask
@@ -406,8 +411,9 @@ tryRight
 	CMP #$15		;Don't move right if at edge of screen
 	BEQ endUse
 	INC shipcoX
-	LDA #$00
-	BEQ endUse
+	;LDA #$00===========================================CHANGE
+	;BEQ endUse
+    JMP endUse
 endUse
 	RTS
 
@@ -430,8 +436,22 @@ spawn
 	CMP #$06		;If number is equal to 6, spawn wall
 	BNE nospawn
 spawnWall
-    ;check level
-    ;
+	LDA staticobsFlag
+	CMP #$01
+	BEQ nospawn
+	LDA currLevel
+	CMP #$03
+	BNE nospawn
+	LDY #$02
+	LDX #$00
+wallYwrite
+	STA staticobsY,x
+	INY
+	INX
+	CPX #$0E
+	BNE wallYwrite
+	LDX #$15
+	STX staticobsX
 	JMP nospawn
 spawnObs
 	LDA fallingobsFlag		;Make sure no falling object is on screen
@@ -478,13 +498,15 @@ nospawn
 updatedata
     JSR updateBullet
     JSR updatefallingobs
+	JSR updateWalls
 	DEC powerUpX
 	LDA powerUpX
 	AND #$7F			;Remove negative flag if it goes from 0 to 255
 	CMP #$17
 	BMI ponScreen
-	LDA #$00
-	STA powerUpFlag
+	;LDA #$00
+	;STA powerUpFlag===========================================CHANGE
+    DEC powerUpFlag
 	JMP skipPUps
 ponScreen
 	LDA #$01
@@ -505,6 +527,21 @@ rfupdate
     JSR algomain
 updatedone
     RTS
+
+updateWalls
+	LDA staticobsFlag
+	CMP #$01
+	BNE noWallUp
+	DEC staticobsX
+	LDA staticobsX
+	AND #$7F			;Remove negative flag if it goes from 0 to 255
+	CMP #$17
+	BMI noWallUp
+	;LDA #$00===========================================CHANGE
+	;STA staticobsFlag
+    DEC staticobsFlag
+noWallUp
+	RTS
 
 algomain			;Branches to correct algorithm, also updates at diff rates for diff algos
     LDA currLevel
@@ -685,20 +722,22 @@ algo3Gen
 	LDA drawDirection
 	CMP #$01
 	BEQ algo3GenDown
-	LDA topset,x				;Draw upward sloping roof
-	SEC
-	SBC #$01
+	;LDA topset,x				;Draw upward sloping roof
+	;SEC===========================================CHANGE
+	;SBC #$01
 	LDX #$15
-	STA topset,x
+    DEC topset,x
+	;STA topset,x
 	LDA #$0D
 	STA emptyset,x
 	BVC algo3done
 algo3GenDown					;Draw downward sloping roof
-	LDA topset,x
-	CLC
-	ADC #$01
-	LDX #$15
-	STA topset,x
+	;LDA topset,x
+	;CLC
+	;ADC #$01  ===========================================CHANGE
+    LDX #$15
+    INC topset,x
+	;STA topset,x
 	LDA #$0D
 	STA emptyset,x
 algo3done
@@ -719,8 +758,9 @@ hitdetect
 	LDA shipcoY
 	SBC #$0A		;Else subtract 10 from Y so it is a usable value
 	TAY
-	LDA #$00
-	BEQ hitBottom
+	;LDA #$00===========================================CHANGE
+	;BEQ hitBottom
+    JMP hitBottom
 hitTop
 	LDA topset,x		;Check if ship is between top and bottom
 	STA internum
@@ -761,8 +801,9 @@ powerUpDetect				;Checks if shipX and shipY are equal to powerupX and Y
     JSR addPickupToAmmo		;Add 1 to ammo
 	LDA #$FF
 	STA powerUpX
-	LDA #$00
-	STA powerUpFlag
+	;LDA #$00
+	;STA powerUpFlag===========================================CHANGE
+    DEC powerUpFlag
 noPUp
 	RTS
 
@@ -806,8 +847,9 @@ bulletdetect
     LDA bulletY
     SBC #$0A            ;Else subtract 10 from Y so it is a usable value
     TAY
-    LDA #$00
-    BEQ bulletHitBottom
+    ;LDA #$00===========================================CHANGE
+    ;BEQ bulletHitBottom
+    JMP bulletHitBottom
 bulletHitTop
     LDA topset,x
     STA internum
@@ -836,8 +878,9 @@ bulletHitTrue
     LDA #$FF
     STA bulletX
     STA bulletY
-	LDA #$00
-	STA bulletFlag
+	;LDA #$00===========================================CHANGE
+	;STA bulletFlag
+    DEC bulletFlag
     RTS
 
 bulletWall
@@ -1006,7 +1049,7 @@ fallingobsb
 	STA internum
 	CPY internum
 	BEQ colorb
-staticobsb 
+staticobsb
 	CPX staticobsX
 	BNE blackb
     TXA
@@ -1065,10 +1108,10 @@ whiteb
 	LDA #$01
 	STA $96F2,x			;Print character as white
 	RTS
-    
+
 pullcolorb
     PLA
-    TAX    
+    TAX
 colorb
 	TXA
 	STY internum
@@ -1387,8 +1430,9 @@ addTenPickScore
     LDA currScoreTens
     CMP #$09
     BEQ addHunToScore
-    ADC #$01
-    STA currScoreTens
+    INC currScoreTens
+    ;ADC #$01===========================================CHANGE
+    ;STA currScoreTens
     RTS
 
 addPickupToAmmo			;Add one to ammo counter when powerup is hits
@@ -1411,8 +1455,9 @@ updateScore
     LDA currTurn
     CMP #$02    ;compare to 2s
     BEQ addOneToScore
-    ADC #$01
-    STA currTurn
+    ;ADC #$01===========================================CHANGE
+    ;STA currTurn
+    INC currTurn
     BVC updateScoreEnd
 addOneToScore
     LDA #$00
@@ -1420,8 +1465,9 @@ addOneToScore
     LDA currScoreOnes
     CMP #$09
     BEQ addTenToScore
-    ADC #$01
-    STA currScoreOnes
+    ;ADC #$01===========================================CHANGE
+    ;STA currScoreOnes
+    INC currScoreOnes
     ;JSR updateLevel     ;For Testing use
     BVC updateScoreEnd
 addTenToScore
@@ -1430,8 +1476,9 @@ addTenToScore
     LDA currScoreTens
     CMP #$09
     BEQ addHunToScore
-    ADC #$01
-    STA currScoreTens
+    ;ADC #$01===========================================CHANGE
+    ;STA currScoreTens
+    INC currScoreTens
     BVC updateScoreEnd
 addHunToScore
     LDA #$00
@@ -1439,8 +1486,9 @@ addHunToScore
     LDA currScoreHuns
     CMP #$09
     BEQ addThouToScore
-    ADC #$01
-    STA currScoreHuns
+    ;ADC #$01===========================================CHANGE
+    ;STA currScoreHuns
+    INC currScoreHuns
     JSR updateLevel     ;change level every 100 points
     BVC updateScoreEnd
 addThouToScore
@@ -1449,8 +1497,9 @@ addThouToScore
     LDA currScoreThous
     CMP #$09
     BEQ addTThousToScore
-    ADC #$01
-    STA currScoreThous
+    ;ADC #$01===========================================CHANGE
+    ;STA currScoreThous
+    INC currScoreThous
     BVC updateScoreEnd
 addTThousToScore
     LDA #$00
@@ -1458,20 +1507,22 @@ addTThousToScore
     LDA currScoreTThous
     CMP #$09
     BEQ updateScoreEnd
-    ADC #$01
-    STA currScoreTThous
+    ;ADC #$01===========================================CHANGE
+    ;STA currScoreTThous
+    INC currScoreTThous
 updateScoreEnd
     RTS
 
 updateLevel				;Adds to the level
-    LDA #$00
-    STA levelCounter
+    ;LDA #$00
+    ;STA levelCounter
     LDA currSubLevel
     CMP #$02
     BEQ nextLevel
-    CLC
-    ADC #$01
-    STA currSubLevel
+    ;CLC
+    ;ADC #$01===========================================CHANGE
+    ;STA currSubLevel
+    INC currSubLevel
     JSR nextLevelHandler
     BVC endUpdateLevel
 nextLevel
@@ -1481,9 +1532,10 @@ nextLevel
     CMP #$03
     BEQ resetLevel
     LDA currLevel
-    CLC
-    ADC #$01
-    STA currLevel
+    ;CLC
+    ;ADC #$01===========================================CHANGE
+    ;STA currLevel
+    INC currLevel
     JSR nextLevelHandler
     BVC endUpdateLevel
 resetLevel
@@ -1585,18 +1637,15 @@ rngloop
 
 ;=============================================================================
 ;DATA
-    org $1B6F        ;dec  ####
-
-inputval
-	.BYTE $00
+    org $1B74       ;dec  ####
 
 currTime
 	.BYTE #$00
 currTurn
     .BYTE $00
 
-levelCounter
-    .BYTE $00
+;levelCounter
+;    .BYTE $00
 currLevel
     .BYTE $03
 currSubLevel
@@ -1665,15 +1714,15 @@ fallingobsFlag
 staticobsX
 	.BYTE $12
 staticobsY
-	;.BYTE $FF, $FF, $FF, $FF, $FF, $FF, $FF
-	;.BYTE $FF, $FF, $FF, $FF, $FF, $FF, $FF
-	.BYTE $05, $12, $13, $14, $15, $16, $17
-	.BYTE $10, $19, $1A, $1B, $1C, $1D, $1E
+	.BYTE $FF, $FF, $FF, $FF, $FF, $FF, $FF
+	.BYTE $FF, $FF, $FF, $FF, $FF, $FF, $FF
+	;.BYTE $05, $12, $13, $14, $15, $16, $17
+	;.BYTE $10, $19, $1A, $1B, $1C, $1D, $1E
 staticobsFlag
 	.BYTE $00
 
 depth
-    .WORD $00
+    .BYTE $00
 internum
     .BYTE $00,$00,$00
 
