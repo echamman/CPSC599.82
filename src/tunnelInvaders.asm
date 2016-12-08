@@ -316,7 +316,7 @@ updatefallingobsEnd
 musicLoop
   	LDA #$0F		        ;load volume 15
 	STA $900E		        ;store volume                      ;volume
-    LDX #$00
+    LDX musicLoopOffset
     LDA sonata,X		;load tone value
 	STA $900B		    ;store to speaker 2
     CPX #$34            ;number of notes
@@ -406,25 +406,25 @@ spawn
 	CMP #$06		;If number is equal to 6, spawn wall
 	BNE nospawn
 spawnWall               ;generates a new destructable wall in level 3
-	LDA staticobsFlag
-	CMP #$01
-	BEQ nospawn
-	LDA currLevel
+	LDA staticobsFlag   ;load static obs flag
+	CMP #$01            ;check if static obs on screen
+	BEQ nospawn         ;if so exit
+	LDA currLevel       ;if level not 3 exit
 	CMP #$03
 	BNE nospawn
-	LDY #$04
+	LDY #$04            ;static obs wall ranges from 4-18
 	LDX #$00
 wallYwrite              ;writes wall values
-	TYA
-	STA staticobsY,x
+	TYA                 ;since STX,x lost us hours of our lives...
+	STA staticobsY,x    ;store the static obs their location y
 	INY
 	INX
-	CPX #$0E
+	CPX #$0E            ; 0-13
 	BNE wallYwrite
-	LDA #$01
-	STA staticobsFlag
+	LDA #$01            
+	STA staticobsFlag   ;store that static obs are on screen
 	LDX #$15
-	STX staticobsX
+	STX staticobsX      ;store the static obs their location x
 	JMP nospawn
 spawnObs
 	LDA fallingobsFlag		;Make sure no falling object is on screen
