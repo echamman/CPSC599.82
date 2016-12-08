@@ -41,7 +41,7 @@ gameloop            ;check input,update data, draw data to screen
     ;LDA #$01===========================================CHANGE
     ;BNE gameloop            ;loop
     JMP gameloop
-    
+
 gameOver
 	LDX #$FF	;color3 and color4 change the character colors to white all across the screen - Appendix E
 color3
@@ -307,7 +307,7 @@ continueToFire
     DEC bulletAmmoOnes  ;dec ammo by 1
     LDA #$01;===========================================CHANGE
     STA bulletFlag      ;set flag to 1 to say bullet is on screen
-    INC bulletFlag
+    ;INC bulletFlag
     LDA shipcoX         ;load current ship location X
     STA bulletX         ;set original location of bullet
     LDA shipcoY         ;load current ship location Y
@@ -359,7 +359,7 @@ musicLoop
     RTS
 musicLoop1
     INX
-    STX musicLoopOffset
+    STX musicLoopOffset ;++
     RTS
 
 useInput
@@ -585,7 +585,7 @@ noUpdate
 algo1						;Steady pattern, up either 1 or 2 until roof, then down
     LDX #$14				;Nothing special
     LDA topset,x
-    CLC
+    ;CLC===========================================CHANGE
     CMP #$02
     BMI setDirectionDown
     CMP #$07
@@ -629,7 +629,7 @@ algo1done
 algo2						;Same as algorithm1, except has randomness in two places
 	LDX #$14				;(1) Moves up 1 or up 2 depending on random, (2 or 3 in second sublevel)
 	LDA topset,x			;(2) Floor is either 5 or 6 subtracted from roof
-	CLC
+	;CLC
 	CMP #$02
 	BMI setDirectionDown2
 	CMP #$08
@@ -836,18 +836,17 @@ wallDetect					;Checks if you've hit a wall
 	CMP staticobsX
 	BNE noStHit
 	LDX #$00
-wallHitL
+wallHitL					;Check all wall Y values
 	LDA staticobsY,x
 	CMP shipcoY
 	BEQ wallHitT			;Wall hit true
 	INX
 	CPX #$0E
 	BMI wallHitL
-	JMP noStHit
-wallHitT
-	JMP gameOver
 noStHit
 	RTS
+wallHitT
+	JMP gameOver
 
 
 bulletdetect
@@ -1075,7 +1074,7 @@ staticobsb
     LDX #$00
 staticobsb1
 	LDA staticobsY,x
-	;CMP #$0B                            ;if its A - 11 is negative the block is in the top half so dont color 
+	;CMP #$0B                            ;if its A - 11 is negative the block is in the top half so dont color
 	;BMI pullblackb
 	CLC
 	SBC #$0A
@@ -1211,7 +1210,7 @@ drawfallingobs1				;Check to see if we want to draw Power up
 drawstaticobs1				;Check to see if we want to draw wall
 	CPX staticobsX
 	BNE drawBlock
-    LDA topset,x 
+    LDA topset,x
     STA internum
     CPY internum            ;check if y value is less than the topset,x
     BMI drawBlock
@@ -1655,7 +1654,8 @@ rngloop
 
 ;=============================================================================
 ;DATA
-    org $1B74       ;dec  ####
+
+    org $1B71       ;dec  ####
 
 currTime
 	.BYTE #$00
