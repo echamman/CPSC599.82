@@ -208,7 +208,7 @@ clearscreen         ;Clears all chars on screen
 print1
     LDA #$20        ;#$20 is space
 	STA $1DFE,X     ;beginning char location
-	DEX             
+	DEX
 	CPX #$00
 	BNE print1
 	LDX #$FF
@@ -335,7 +335,7 @@ updatefallingobs
     BNE updatefallingobsEnd     ;else jump over
     DEC fallingobsX				;Moves object left and down
     INC fallingobsY             ; move down screen
-    LDA fallingobsX         
+    LDA fallingobsX
 	AND #$7F					;remove neg flag
     CMP #$18					;Removes object when it moves off screen, sets flag to 00
     BMI updatefallingobsEnd
@@ -348,12 +348,12 @@ updatefallingobsEnd
 
 musicLoop
   	LDA #$0F		        ;load volume 15
-	STA $900E		        ;store volume  
+	STA $900E		        ;store volume
     LDX #$00
     LDA sonata,X		;load tone value
 	STA $900B		    ;store to speaker 2
     CPX #$34            ;number of notes
-    BNE musicLoop1      
+    BNE musicLoop1
     LDA #$00            ;start loop again
     STA musicLoopOffset
     RTS
@@ -522,7 +522,7 @@ skipPUps
     LDX #$01
     LDY #$00
 
-rfupdate            
+rfupdate
     LDA topset,x
     STA topset,y
     LDA emptyset,x
