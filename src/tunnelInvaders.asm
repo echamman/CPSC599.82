@@ -571,7 +571,7 @@ algo1Gen
     BEQ algo1GenDown
     LDA topset,x			;Drawing upward sloped roof
     SEC
-    SBC currSubLevel
+    SBC currSubLevel		;Use currsublevel to create more extremeness 
     LDX #$15
     STA topset,x
     CLC
@@ -641,11 +641,11 @@ algo2GenDown				;Generate downward sloping roof
 	LDX #$15
 	LDA topset,x
 	CLC
-	ADC currSubLevel
+	ADC currSubLevel		;Using currSubLevel creates mae extreme generation in sub2
 	CLC
 	ADC internum
 	LDX #$15
-	STA topset,x
+	STA topset,x			;Either add 6 or 5 to topset
 	JSR getrng
 	LDX #$15
 	CPY #$01
@@ -675,7 +675,7 @@ algo3						;Simplest algorithm, no middle portion
 	STA internum
 	CPY internum
 	BMI setDirectionDown3
-	LDA currSubLevel
+	LDA currSubLevel			;Using currsublevel creates differences between sub1 and sub2
 	ASL
 	CLC
 	ADC #$04
