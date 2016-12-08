@@ -88,25 +88,25 @@ color4
 	LDA #$05	;E
 	STA $1E4B
 	CLC
-	LDA currScoreTThous		;0 //currScoreHundredThousands
-	ADC #$30
-	STA $1E4D
-	LDA currScoreThous		;0 //currScoreTenThousands
+	LDA currScoreTThous		;current score ten thousands place value
+	ADC #$30                ;add char table offset
+	STA $1E4D               ;store to screen
+	LDA currScoreThous		;current score thousands place value
 	ADC #$30
 	STA $1E4E
-	LDA currScoreHuns		;0 //currScoreOnes
+	LDA currScoreHuns		;current score hundreds place value
 	ADC #$30
 	STA $1E4F
-	LDA currScoreTens		;0 //currScoreTens
+	LDA currScoreTens		;current score ten place
 	ADC #$30
 	STA $1E50
-	LDA currScoreOnes       ;0 //currScoreHuns
+	LDA currScoreOnes       ;current score ones place
 	ADC #$30
 	STA $1E51
 gameOver1
-    LDA #$00
-    STA $900E
-	BEQ gameOver1
+    LDA #$00        ;load volume
+    STA $900E       ;store to speaker
+	BEQ gameOver1   ;dead loop
 
 intro
 	LDA #$8		;Storing 8 into 36879, full black screen
@@ -177,8 +177,8 @@ hitstart			      ;Prints the start screen - Appendix E
 	LDA #$5		;E
 	STA $1EBF
 
-	LDA #$02
-	STA $96BC
+	LDA #$02    ;colour code for red
+	STA $96BC   ;store to FIRE positions
 	STA $96BD
 	STA $96BE
 	STA $96BF
@@ -203,16 +203,16 @@ quitIntro2
     JSR clearscreen
     RTS
 
-clearscreen
+clearscreen         ;Clears all chars on screen
 	LDX #$FF	    ;print1 and print2 are printing ' ' to the screen - Appendix E
 print1
     LDA #$20        ;#$20 is space
-	STA $1DFE,X
-	DEX
-	CPX #$0
+	STA $1DFE,X     ;beginning char location
+	DEX             
+	CPX #$00
 	BNE print1
 	LDX #$FF
-print2
+print2              ;bottom set of chars on screen
     LDA #$20
 	STA $1EFD,X
 	DEX
@@ -247,17 +247,17 @@ storeship1
     LDA ship,x      ;Chatset location 27 or dec 7440-7448. 9 char change
     STA $1D10,x
     INX
-    CPX #$08       ;dec 72 = 1*8
+    CPX #$08       ;dec 8 = 1*8
     BNE storeship1
     LDX #$00
 block              ;put block char in to screen code 0
     LDA $8330,x
     STA $1C00,x
     INX
-    CPX #$08
+    CPX #$08        ;dec 8 = 1*8
     BNE block
 powerup_obj
-    LDX #$0
+    LDX #$00
 powerup1
     LDA powerup,x      ;Chatset location 28 or dec 7449-7456
     STA $1D18,x
@@ -265,12 +265,12 @@ powerup1
     CPX #$08       ;dec 8 = 1*8
     BNE powerup1
 falling_obs_obj
-    LDX #$0
+    LDX #$00
 fallingobs1
     LDA fallingobs,x      ;Chatset location 29 or dec 7457-7464
     STA $1D20,x
     INX
-    CPX #$08       ;dec 8 = 1*8
+    CPX #$08              ;dec 8 = 1*8
     BNE fallingobs1
 static_obs_obj
     LDX #$0
@@ -278,7 +278,7 @@ staticobs1
     LDA staticobs,x      ;Chatset location 30 or dec 7465-7472
     STA $1D28,x
     INX
-    CPX #$08       ;dec 8 = 1*8
+    CPX #$08        ;dec 8 = 1*8
     BNE staticobs1
 bullet_obj
     LDX #$0
@@ -302,7 +302,7 @@ fireBullet
     BEQ fireBulletEnd   ;if also 0, no ammo left
     DEC bulletAmmoTens  ;else dec tens place
     LDA #$0A
-    STA bulletAmmoOnes  ;store 10 for immdieiate decriment
+    STA bulletAmmoOnes  ;store 10 for immdeiate decriment
 continueToFire
     DEC bulletAmmoOnes  ;dec ammo by 1
     LDA #$01;===========================================CHANGE
@@ -311,7 +311,7 @@ continueToFire
     LDA shipcoX         ;load current ship location X
     STA bulletX         ;set original location of bullet
     LDA shipcoY         ;load current ship location Y
-    STA bulletY
+    STA bulletY         ;store to current bullet Y
 fireBulletEnd
     RTS
 
@@ -332,10 +332,10 @@ updateBulletEnd
 updatefallingobs
     LDA fallingobsFlag			;Checking if an object is already on screen
     CMP #$01
-    BNE updatefallingobsEnd
+    BNE updatefallingobsEnd     ;else jump over
     DEC fallingobsX				;Moves object left and down
-    INC fallingobsY
-    LDA fallingobsX
+    INC fallingobsY             ; move down screen
+    LDA fallingobsX         
 	AND #$7F					;remove neg flag
     CMP #$18					;Removes object when it moves off screen, sets flag to 00
     BMI updatefallingobsEnd
@@ -348,18 +348,18 @@ updatefallingobsEnd
 
 musicLoop
   	LDA #$0F		        ;load volume 15
-	STA $900E		        ;store volume                      ;volume
-    LDX musicLoopOffset
+	STA $900E		        ;store volume  
+    LDX #$00
     LDA sonata,X		;load tone value
 	STA $900B		    ;store to speaker 2
     CPX #$34            ;number of notes
-    BNE musicLoop1
-    LDX #$00
-    STX musicLoopOffset
+    BNE musicLoop1      
+    LDA #$00            ;start loop again
+    STA musicLoopOffset
     RTS
 musicLoop1
     INX
-    STX musicLoopOffset
+    STX musicLoopOffset ;++
     RTS
 
 useInput
@@ -522,7 +522,7 @@ skipPUps
     LDX #$01
     LDY #$00
 
-rfupdate
+rfupdate            
     LDA topset,x
     STA topset,y
     LDA emptyset,x
@@ -862,7 +862,7 @@ bulletdetect
     ;LDA #$00===========================================CHANGE
     ;BEQ bulletHitBottom
     JMP bulletHitBottom
-bulletHitTop
+bulletHitTop            ;hit detect for upper screen half
     LDA topset,x
     STA internum
     CPY internum
@@ -872,7 +872,7 @@ bulletHitTop
     CPY internum
     BPL bulletHitTrue
     RTS
-bulletHitBottom
+bulletHitBottom         ;hit detect for lower screen half
     LDA #$0C
     CLC
     SBC emptyset,x
@@ -886,7 +886,7 @@ bulletHitBottom
     CPY internum
     BPL bulletHitTrue
     RTS
-bulletHitTrue
+bulletHitTrue           ;hit occurred
     LDA #$FF
     STA bulletX
     STA bulletY
@@ -895,14 +895,14 @@ bulletHitTrue
     DEC bulletFlag
     RTS
 
-bulletWall
+bulletWall          ;bullet wall hit detect
 	LDA bulletX
-	CMP staticobsX
+	CMP staticobsX  ;compare to actual wall location
     BEQ bullHitL
     LDX staticobsX
     STX internum
     DEC internum
-    CMP internum
+    CMP internum    ;compare to one position before the wall to ensure good hit detect
 	BNE noBulHit
 	LDX #$00
 bullHitL
@@ -1031,7 +1031,7 @@ colorbottom	            ;Changes color of char printed for bottom of screen
 	CPY internum
 	BNE bulletb
     JMP whiteb
-bulletb
+bulletb                 ;colour bullets on lower half
 	CPX bulletX
 	BNE powerUpb
 	LDA bulletY
@@ -1043,7 +1043,7 @@ bulletb
 	CPY internum
 	BNE powerUpb
 	JMP whiteb
-powerUpb
+powerUpb                ;colour powerups on lower half
 	CPX powerUpX
 	BNE fallingobsb
 	LDA powerUpY
@@ -1055,7 +1055,7 @@ powerUpb
 	CPY internum
     BNE fallingobsb
     JMP yellowb
-fallingobsb
+fallingobsb             ;colour falling obs on lower half
 	CPX fallingobsX
 	BNE staticobsb
 	LDA fallingobsY
@@ -1066,7 +1066,7 @@ fallingobsb
 	STA internum
 	CPY internum
 	BEQ colorb
-staticobsb
+staticobsb              ;colour walls on lower half
 	CPX staticobsX
 	BNE blackb
     TXA
@@ -1654,7 +1654,8 @@ rngloop
 
 ;=============================================================================
 ;DATA
-    org $1B72       ;dec  ####
+
+    org $1B71       ;dec  ####
 
 currTime
 	.BYTE #$00
