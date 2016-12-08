@@ -1014,8 +1014,8 @@ staticobsb
     LDX #$00
 staticobsb1
 	LDA staticobsY,x
-	CMP #$0B                            ;if its A - 11 is negative the block is in the top half so dont color 
-	BMI pullblackb
+	;CMP #$0B                            ;if its A - 11 is negative the block is in the top half so dont color 
+	;BMI pullblackb
 	CLC
 	SBC #$0A
 	STA internum
@@ -1150,6 +1150,10 @@ drawfallingobs1				;Check to see if we want to draw Power up
 drawstaticobs1				;Check to see if we want to draw wall
 	CPX staticobsX
 	BNE drawBlock
+    LDA topset,x 
+    STA internum
+    CPY internum            ;check if y value is less than the topset,x
+    BMI drawBlock
     TXA
     PHA
     LDX #$00
@@ -1241,7 +1245,8 @@ fillcolb
 	SBC #$0A
 	STA internum
 	CPY internum
-	BEQ drawshipb
+	BNE drawbullet1b
+    JMP drawshipb
 drawbullet1b
 	CPX bulletX
 	BNE drawPUp1b
@@ -1278,13 +1283,21 @@ drawfallingobs1b
 drawstaticobs1b ;==============================================
     CPX staticobsX
     BNE drawBlockb
+    LDA topset,x
+    STA internum
+    LDA #$0C
+    CLC
+    SBC internum
+    STA internum
+    CPY internum
+    BPL drawBlockb
     TXA
     PHA
     LDX #$00
 drawstaticobsloop
     LDA staticobsY,x
-    CMP #$0B
-    BMI pulldrawBlockb
+    ;CMP #$0B
+    ;BMI pulldrawBlockb
     CLC
     SBC #$0A
     STA internum
@@ -1572,7 +1585,7 @@ rngloop
 
 ;=============================================================================
 ;DATA
-    org $1B1D        ;dec  ####
+    org $1B6F        ;dec  ####
 
 inputval
 	.BYTE $00
@@ -1654,8 +1667,8 @@ staticobsX
 staticobsY
 	;.BYTE $FF, $FF, $FF, $FF, $FF, $FF, $FF
 	;.BYTE $FF, $FF, $FF, $FF, $FF, $FF, $FF
-	.BYTE $11, $12, $13, $14, $15, $16, $17
-	.BYTE $18, $19, $1A, $1B, $1C, $1D, $1E
+	.BYTE $05, $12, $13, $14, $15, $16, $17
+	.BYTE $10, $19, $1A, $1B, $1C, $1D, $1E
 staticobsFlag
 	.BYTE $00
 
