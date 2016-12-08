@@ -203,16 +203,16 @@ quitIntro2
     JSR clearscreen
     RTS
 
-clearscreen
+clearscreen         ;Clears all chars on screen
 	LDX #$FF	    ;print1 and print2 are printing ' ' to the screen - Appendix E
 print1
     LDA #$20        ;#$20 is space
-	STA $1DFE,X
-	DEX
-	CPX #$0
+	STA $1DFE,X     ;beginning char location
+	DEX             
+	CPX #$00
 	BNE print1
 	LDX #$FF
-print2
+print2              ;bottom set of chars on screen
     LDA #$20
 	STA $1EFD,X
 	DEX
@@ -247,17 +247,17 @@ storeship1
     LDA ship,x      ;Chatset location 27 or dec 7440-7448. 9 char change
     STA $1D10,x
     INX
-    CPX #$08       ;dec 72 = 1*8
+    CPX #$08       ;dec 8 = 1*8
     BNE storeship1
     LDX #$00
 block              ;put block char in to screen code 0
     LDA $8330,x
     STA $1C00,x
     INX
-    CPX #$08
+    CPX #$08        ;dec 8 = 1*8
     BNE block
 powerup_obj
-    LDX #$0
+    LDX #$00
 powerup1
     LDA powerup,x      ;Chatset location 28 or dec 7449-7456
     STA $1D18,x
@@ -265,12 +265,12 @@ powerup1
     CPX #$08       ;dec 8 = 1*8
     BNE powerup1
 falling_obs_obj
-    LDX #$0
+    LDX #$00
 fallingobs1
     LDA fallingobs,x      ;Chatset location 29 or dec 7457-7464
     STA $1D20,x
     INX
-    CPX #$08       ;dec 8 = 1*8
+    CPX #$08              ;dec 8 = 1*8
     BNE fallingobs1
 static_obs_obj
     LDX #$0
@@ -278,7 +278,7 @@ staticobs1
     LDA staticobs,x      ;Chatset location 30 or dec 7465-7472
     STA $1D28,x
     INX
-    CPX #$08       ;dec 8 = 1*8
+    CPX #$08        ;dec 8 = 1*8
     BNE staticobs1
 bullet_obj
     LDX #$0
@@ -305,8 +305,8 @@ fireBullet
     STA bulletAmmoOnes  ;store 10 for immdieiate decriment
 continueToFire
     DEC bulletAmmoOnes  ;dec ammo by 1
-    ;LDA #$01===========================================CHANGE
-    ;STA bulletFlag      ;set flag to 1 to say bullet is on screen
+    LDA #$01;===========================================CHANGE
+    STA bulletFlag      ;set flag to 1 to say bullet is on screen
     INC bulletFlag
     LDA shipcoX         ;load current ship location X
     STA bulletX         ;set original location of bullet
@@ -332,10 +332,10 @@ updateBulletEnd
 updatefallingobs
     LDA fallingobsFlag			;Checking if an object is already on screen
     CMP #$01
-    BNE updatefallingobsEnd
+    BNE updatefallingobsEnd     ;else jump over
     DEC fallingobsX				;Moves object left and down
-    INC fallingobsY
-    LDA fallingobsX
+    INC fallingobsY             ; move down screen
+    LDA fallingobsX         
 	AND #$7F					;remove neg flag
     CMP #$18					;Removes object when it moves off screen, sets flag to 00
     BMI updatefallingobsEnd
@@ -348,14 +348,14 @@ updatefallingobsEnd
 
 musicLoop
   	LDA #$0F		        ;load volume 15
-	STA $900E		        ;store volume                      ;volume
-    LDX musicLoopOffset
+	STA $900E		        ;store volume  
+    LDX #$00
     LDA sonata,X		;load tone value
 	STA $900B		    ;store to speaker 2
     CPX #$34            ;number of notes
-    BNE musicLoop1
-    LDX #$00
-    STX musicLoopOffset
+    BNE musicLoop1      
+    LDA #$00            ;start loop again
+    STA musicLoopOffset
     RTS
 musicLoop1
     INX
@@ -1655,7 +1655,7 @@ rngloop
 
 ;=============================================================================
 ;DATA
-    org $1B75       ;dec  ####
+    org $1B74       ;dec  ####
 
 currTime
 	.BYTE #$00
