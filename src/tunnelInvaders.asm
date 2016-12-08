@@ -1532,7 +1532,7 @@ levelcolor
 sonata
     .BYTE $00,$C9,$00,$D1,$DB,$D7,$DB,$DB
     .BYTE $00,$C9,$00,$D1,$DB,$D1,$D7,$00
-    .BYTE $D7F,$C9,$00,$C9,$D7,$00,$C3,$00
+    .BYTE $D7,$C9,$00,$C9,$D7,$00,$C3,$00
     .BYTE $DB,$DB,$00,$00,$DB,$DB,$DF,$DF
     .BYTE $E1,$DF,$D7,$CF,$D1,$CF,$D1,$D1
     .BYTE $00,$D1,$D1,$9F,$93,$00,$93,$00
