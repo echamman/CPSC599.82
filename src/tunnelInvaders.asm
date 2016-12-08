@@ -88,25 +88,25 @@ color4
 	LDA #$05	;E
 	STA $1E4B
 	CLC
-	LDA currScoreTThous		;0 //currScoreHundredThousands
-	ADC #$30
-	STA $1E4D
-	LDA currScoreThous		;0 //currScoreTenThousands
+	LDA currScoreTThous		;current score ten thousands place value
+	ADC #$30                ;add char table offset
+	STA $1E4D               ;store to screen
+	LDA currScoreThous		;current score thousands place value
 	ADC #$30
 	STA $1E4E
-	LDA currScoreHuns		;0 //currScoreOnes
+	LDA currScoreHuns		;current score hundreds place value
 	ADC #$30
 	STA $1E4F
-	LDA currScoreTens		;0 //currScoreTens
+	LDA currScoreTens		;current score ten place
 	ADC #$30
 	STA $1E50
-	LDA currScoreOnes       ;0 //currScoreHuns
+	LDA currScoreOnes       ;current score ones place
 	ADC #$30
 	STA $1E51
 gameOver1
-    LDA #$00
-    STA $900E
-	BEQ gameOver1
+    LDA #$00        ;load volume
+    STA $900E       ;store to speaker
+	BEQ gameOver1   ;dead loop
 
 intro
 	LDA #$8		;Storing 8 into 36879, full black screen
@@ -177,8 +177,8 @@ hitstart			      ;Prints the start screen - Appendix E
 	LDA #$5		;E
 	STA $1EBF
 
-	LDA #$02
-	STA $96BC
+	LDA #$02    ;colour code for red
+	STA $96BC   ;store to FIRE positions
 	STA $96BD
 	STA $96BE
 	STA $96BF
@@ -302,16 +302,15 @@ fireBullet
     BEQ fireBulletEnd   ;if also 0, no ammo left
     DEC bulletAmmoTens  ;else dec tens place
     LDA #$0A
-    STA bulletAmmoOnes  ;store 10 for immdieiate decriment
+    STA bulletAmmoOnes  ;store 10 for immdeiate decriment
 continueToFire
     DEC bulletAmmoOnes  ;dec ammo by 1
-    ;LDA #$01===========================================CHANGE
-    ;STA bulletFlag      ;set flag to 1 to say bullet is on screen
-    INC bulletFlag
+    LDA #$01
+    STA bulletFlag      
     LDA shipcoX         ;load current ship location X
     STA bulletX         ;set original location of bullet
     LDA shipcoY         ;load current ship location Y
-    STA bulletY
+    STA bulletY         ;store to current bullet Y
 fireBulletEnd
     RTS
 
@@ -522,7 +521,7 @@ skipPUps
     LDX #$01
     LDY #$00
 
-rfupdate
+rfupdate            
     LDA topset,x
     STA topset,y
     LDA emptyset,x
@@ -863,7 +862,7 @@ bulletdetect
     ;LDA #$00===========================================CHANGE
     ;BEQ bulletHitBottom
     JMP bulletHitBottom
-bulletHitTop
+bulletHitTop            ;hit detect for upper screen half
     LDA topset,x
     STA internum
     CPY internum
@@ -873,7 +872,7 @@ bulletHitTop
     CPY internum
     BPL bulletHitTrue
     RTS
-bulletHitBottom
+bulletHitBottom         ;hit detect for lower screen half
     LDA #$0C
     CLC
     SBC emptyset,x
@@ -887,7 +886,7 @@ bulletHitBottom
     CPY internum
     BPL bulletHitTrue
     RTS
-bulletHitTrue
+bulletHitTrue           ;hit occurred
     LDA #$FF
     STA bulletX
     STA bulletY
@@ -896,14 +895,14 @@ bulletHitTrue
     DEC bulletFlag
     RTS
 
-bulletWall
+bulletWall          ;bullet wall hit detect
 	LDA bulletX
-	CMP staticobsX
+	CMP staticobsX  ;compare to actual wall location
     BEQ bullHitL
     LDX staticobsX
     STX internum
     DEC internum
-    CMP internum
+    CMP internum    ;compare to one position before the wall to ensure good hit detect
 	BNE noBulHit
 	LDX #$00
 bullHitL
@@ -1032,7 +1031,7 @@ colorbottom	            ;Changes color of char printed for bottom of screen
 	CPY internum
 	BNE bulletb
     JMP whiteb
-bulletb
+bulletb                 ;colour bullets on lower half
 	CPX bulletX
 	BNE powerUpb
 	LDA bulletY
@@ -1044,7 +1043,7 @@ bulletb
 	CPY internum
 	BNE powerUpb
 	JMP whiteb
-powerUpb
+powerUpb                ;colour powerups on lower half
 	CPX powerUpX
 	BNE fallingobsb
 	LDA powerUpY
@@ -1056,7 +1055,7 @@ powerUpb
 	CPY internum
     BNE fallingobsb
     JMP yellowb
-fallingobsb
+fallingobsb             ;colour falling obs on lower half
 	CPX fallingobsX
 	BNE staticobsb
 	LDA fallingobsY
@@ -1067,7 +1066,7 @@ fallingobsb
 	STA internum
 	CPY internum
 	BEQ colorb
-staticobsb
+staticobsb              ;colour walls on lower half
 	CPX staticobsX
 	BNE blackb
     TXA
