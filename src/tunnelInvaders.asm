@@ -30,7 +30,7 @@ gameloop            ;check input,update data, draw data to screen
     JSR bulletdetect ; check if bullet hit something
 	JSR useInput    ;needs comments in function
   	JSR hitdetect	;Check if hit
-    JSR bulletdetect ; check if bullet hit something
+	JSR bulletdetect ; check if bullet hit something
 	JSR musicLoop   ;da beats!
 	JSR spawn		;Calls for spawning of obstables and powerups
     JSR updatedata  ;based off Reg Y update certain blocks -> needs comments in function
@@ -490,7 +490,6 @@ ponScreen
 	LDA #$01
 	STA powerUpFlag
 skipPUps
-	JSR updateBullet
     LDX #$01
     LDY #$00
 
@@ -711,6 +710,7 @@ hitdetect
 	BEQ noHit
 	JSR powerUpDetect		;Check if ship hit powerup
 	JSR obsDetect			;Check if ship hit falling obstacle
+	JSR wallDetect			;Check if you've hit a wall
 	LDX shipcoX			;Load X
 	LDY shipcoY			;Load Y
 	CPY #$0B
@@ -777,9 +777,27 @@ obsDetect					;Simply detects if shipX and Y are equal to obstacleX and Y
 noObsHit
 	RTS
 
+wallDetect					;Checks if you've hit a wall
+	LDA shipcoX
+	CMP staticobsX
+	BNE noStHit
+	LDX #$00
+wallHitL
+	LDA staticobsY,x
+	CMP shipcoY
+	BEQ wallHitT			;Wall hit true
+	INX
+	CPX #$0E
+	BMI wallHitL
+	JMP noStHit
+wallHitT
+	JMP gameOver
+noStHit
+	RTS
 
 
 bulletdetect
+	JSR bulletWall
     LDX bulletX         ;load x pos
     LDY bulletY         ;load y pos
     CPY #$0B
@@ -822,6 +840,26 @@ bulletHitTrue
 	STA bulletFlag
     RTS
 
+bulletWall
+	LDA bulletX
+	CMP staticobsX
+	BNE noBulHit
+	LDX #$00
+bullHitL
+	LDA staticobsY,x
+	CMP bulletY
+	BEQ bullHitT			;bullet-wall hit true
+	INX
+	CPX #$0E
+	BMI bullHitL
+	JMP noBulHit
+bullHitT
+	LDA #$FF
+	STA staticobsY,x
+	JMP bulletHitTrue
+noBulHit
+	RTS
+
 colortop	            ;Changes color of char printed, called for each char on top of screen
 	CPX shipcoX			;If it is shipX and Y, color white
 	BNE bullett
@@ -844,7 +882,7 @@ fallingobst				;If at falling obstacleX and Y, color level color
     BEQ colort
 staticobst
     CPX staticobsX
-    BNE blackt   
+    BNE blackt
     TXA
     PHA
     LDX #$00
@@ -892,10 +930,10 @@ whitet
 	LDA #$01
 	STA $9600,x			;Print character as white
 	RTS
-    
+
 pullcolort
     PLA
-    TAX     
+    TAX
 colort
 	TXA
 	STY internum
@@ -1100,17 +1138,17 @@ drawbullet1
     CPY bulletY
     BEQ drawbullet      ;if yes draw bullet
 drawPUp1				;Check to see if we want to draw Power up
-	CPX powerUpX         
+	CPX powerUpX
 	BNE drawfallingobs1
 	CPY powerUpY
 	BEQ drawPUp	     ;if yes draw bullet
 drawfallingobs1				;Check to see if we want to draw Power up
-	CPX fallingobsX         
+	CPX fallingobsX
 	BNE drawstaticobs1
 	CPY fallingobsY
 	BEQ drawfallingobs	     ;if yes draw bullet
 drawstaticobs1				;Check to see if we want to draw wall
-	CPX staticobsX       
+	CPX staticobsX
 	BNE drawBlock
     TXA
     PHA
@@ -1122,9 +1160,9 @@ DSOBS1
 	BEQ drawstaticobs	     ;if yes draw wall
     INX
     CPX #$0E
-    BNE DSOBS1   
+    BNE DSOBS1
     PLA
-    TAX   
+    TAX
 drawBlock
 	PLA
 	TAY
@@ -1148,16 +1186,16 @@ drawfallingobs
 	TAY
 	LDA #$24            ; falling obs  block
 	STA $1E00,y
-	JMP cont 
+	JMP cont
 drawstaticobs
     PLA
-    TAX  
+    TAX
     PLA
 	TAY
 	LDA #$25            ; falling obs  block
 	STA $1E00,y
-	JMP cont 
-    
+	JMP cont
+
 drawship
 	PLA
 	TAY
@@ -1534,7 +1572,7 @@ rngloop
 
 ;=============================================================================
 ;DATA
-    org $1B1D        ;dec  6144
+    org $1B1D        ;dec  ####
 
 inputval
 	.BYTE $00
@@ -1547,7 +1585,7 @@ currTurn
 levelCounter
     .BYTE $00
 currLevel
-    .BYTE $01
+    .BYTE $03
 currSubLevel
     .BYTE $01
 
@@ -1592,7 +1630,7 @@ bulletFlag
     .BYTE $00
 
 bulletAmmoOnes
-    .BYTE $01
+    .BYTE $05
 bulletAmmoTens
     .BYTE $00
 
