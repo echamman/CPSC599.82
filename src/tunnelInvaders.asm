@@ -125,7 +125,7 @@ hitstart			      ;Prints the start screen - Appendix E
 	LDA #$15	;U
 	STA $1E4E
 	LDA #$0E	;N
-	STA $1E4F
+	STA $1E4F   
 
 	LDA #$10    ;P
 	STA $1EB6
@@ -148,7 +148,7 @@ hitstart			      ;Prints the start screen - Appendix E
 
 	LDA #$02
 	STA $96BC
-	STA $96BD
+	STA $96BD   ;makes 'FIRE' red
 	STA $96BE
 	STA $96BF
 
@@ -180,7 +180,7 @@ print1
 	CPX #$0
 	BNE print1
 	LDX #$FF
-print2
+print2              ;clearing bottom half of the screen
     LDA #$20
 	STA $1EFD,X
 	DEX
@@ -215,14 +215,14 @@ storeship1
     LDA ship,x      ;Chatset location 27 or dec 7440-7448. 9 char change
     STA $1D10,x
     INX
-    CPX #$08       ;dec 72 = 1*8
+    CPX #$08       ;dec 8 = 1*8
     BNE storeship1
     LDX #$00
 block              ;put block char in to screen code 0
     LDA $8330,x
     STA $1C00,x
     INX
-    CPX #$08
+    CPX #$08        ;dec 8 = 1*8
     BNE block
 powerup_obj
     LDX #$0
@@ -316,13 +316,13 @@ updatefallingobsEnd
 musicLoop
   	LDA #$0F		        ;load volume 15
 	STA $900E		        ;store volume                      ;volume
-    LDX musicLoopOffset
+    LDX #$00
     LDA sonata,X		;load tone value
 	STA $900B		    ;store to speaker 2
     CPX #$34            ;number of notes
     BNE musicLoop1
     LDX #$00
-    STX musicLoopOffset
+    STX musicLoopOffset 
     RTS
 musicLoop1
     INX
@@ -405,7 +405,7 @@ spawn
 	BEQ spawnObs
 	CMP #$06		;If number is equal to 6, spawn wall
 	BNE nospawn
-spawnWall
+spawnWall               ;generates a new destructable wall in level 3
 	LDA staticobsFlag
 	CMP #$01
 	BEQ nospawn
@@ -414,7 +414,7 @@ spawnWall
 	BNE nospawn
 	LDY #$04
 	LDX #$00
-wallYwrite
+wallYwrite              ;writes wall values
 	TYA
 	STA staticobsY,x
 	INY
@@ -469,10 +469,10 @@ nospawn
 ;3) store col = col + 1
 
 updatedata
-    JSR updateBullet
-    JSR updatefallingobs
-	JSR updateWalls
-	DEC powerUpX
+    JSR updateBullet         ;move bullet appropriately
+    JSR updatefallingobs     ;moves falling objects
+	JSR updateWalls         ;update walls
+	DEC powerUpX            ;update powerups
 	LDA powerUpX
 	AND #$7F			;Remove negative flag if it goes from 0 to 255
 	CMP #$17
@@ -482,14 +482,14 @@ updatedata
     DEC powerUpFlag
 	JMP skipPUps
 ponScreen
-	LDA #$01
+	LDA #$01                ;when powerup is onscreen store 1 in its flag
 	STA powerUpFlag
 skipPUps
     LDX #$01
     LDY #$00
 
 rfupdate
-    LDA topset,x
+    LDA topset,x            ;this shifts all the data for the tunnel floor and roof left one
     STA topset,y
     LDA emptyset,x
     STA emptyset,y
@@ -497,22 +497,22 @@ rfupdate
     INY
     CPX #$16
     BMI rfupdate
-    JSR algomain
+    JSR algomain            ;then find the last column
 updatedone
     RTS
 
 updateWalls
-	LDA staticobsFlag
-	CMP #$01
-	BNE noWallUp
-	DEC staticobsX
-	LDA staticobsX
+	LDA staticobsFlag       ;load if wall flag to see if on screen
+	CMP #$01                
+	BNE noWallUp            ; if onscreen exit
+	DEC staticobsX          ; else update it
+	LDA staticobsX      
 	AND #$7F			;Remove negative flag if it goes from 0 to 255
 	CMP #$17
 	BMI noWallUp
 	;LDA #$00===========================================CHANGE
 	;STA staticobsFlag
-    DEC staticobsFlag
+    DEC staticobsFlag       ;set flag to 0 when off screen
 noWallUp
 	RTS
 
@@ -823,7 +823,7 @@ bulletdetect
     ;LDA #$00===========================================CHANGE
     ;BEQ bulletHitBottom
     JMP bulletHitBottom
-bulletHitTop
+bulletHitTop                ;checking top screen for bullet collision
     LDA topset,x
     STA internum
     CPY internum
@@ -833,7 +833,7 @@ bulletHitTop
     CPY internum
     BPL bulletHitTrue
     RTS
-bulletHitBottom
+bulletHitBottom                       ;checking bottom screen for bullet collision
     LDA #$0C
     CLC
     SBC emptyset,x
@@ -847,7 +847,7 @@ bulletHitBottom
     CPY internum
     BPL bulletHitTrue
     RTS
-bulletHitTrue
+bulletHitTrue                       ;bullet hit has occurred
     LDA #$FF
     STA bulletX
     STA bulletY
@@ -856,14 +856,14 @@ bulletHitTrue
     DEC bulletFlag
     RTS
 
-bulletWall
+bulletWall              ;bullet destroyable wall hit detection
 	LDA bulletX
 	CMP staticobsX
 	BEQ bullHitP
 	LDX staticobsX
 	STX internum
 	DEC internum
-	CMP internum
+	CMP internum        ;check against both x and x-1
 	BNE noBulHit
 bullHitP
 	LDX #$00
@@ -993,7 +993,7 @@ colorbottom	            ;Changes color of char printed for bottom of screen
 	CPY internum
 	BNE bulletb
     JMP whiteb
-bulletb
+bulletb                 ;colour bullet
 	CPX bulletX
 	BNE powerUpb
 	LDA bulletY
@@ -1005,7 +1005,7 @@ bulletb
 	CPY internum
 	BNE powerUpb
 	JMP whiteb
-powerUpb
+powerUpb                ;colour powerups
 	CPX powerUpX
 	BNE fallingobsb
 	LDA powerUpY
@@ -1017,7 +1017,7 @@ powerUpb
 	CPY internum
     BNE fallingobsb
     JMP yellowb
-fallingobsb
+fallingobsb             ;colour falling rocks
 	CPX fallingobsX
 	BNE staticobsb
 	LDA fallingobsY
@@ -1028,7 +1028,7 @@ fallingobsb
 	STA internum
 	CPY internum
 	BEQ colorb
-staticobsb
+staticobsb              ;colour walls
 	CPX staticobsX
 	BNE blackb
     TXA
@@ -1049,7 +1049,7 @@ staticobsb1
 pullblackb
     PLA
     TAX
-blackb
+blackb                  ;colours proper bottom blocks balck
 	CPY #$0A
 	BEQ colorb
 	LDA #$0C
@@ -1269,7 +1269,7 @@ fillcolb
 	CPY internum
 	BNE drawbullet1b
     JMP drawshipb
-drawbullet1b
+drawbullet1b            ;draw bullet to bottom screen
 	CPX bulletX
 	BNE drawPUp1b
 	LDA bulletY
@@ -1280,7 +1280,7 @@ drawbullet1b
 	STA internum
 	CPY internum
 	BEQ drawbulletb
-drawPUp1b
+drawPUp1b               ;draw powerup to bottom screen
 	CPX powerUpX
 	BNE drawfallingobs1b
 	LDA powerUpY
@@ -1291,7 +1291,7 @@ drawPUp1b
 	STA internum
 	CPY internum
 	BEQ drawPUpb
-drawfallingobs1b
+drawfallingobs1b        ;draw falling rocks to bottom screen
 	CPX fallingobsX
 	BNE drawstaticobs1b
 	LDA fallingobsY
@@ -1302,7 +1302,7 @@ drawfallingobs1b
 	STA internum
 	CPY internum
 	BEQ drawfallingobsb
-drawstaticobs1b ;==============================================
+drawstaticobs1b         ;draws a wall section to bottom screen
     CPX staticobsX
     BNE drawBlockb
     LDA topset,x
@@ -1316,7 +1316,7 @@ drawstaticobs1b ;==============================================
     TXA
     PHA
     LDX #$00
-drawstaticobsloop
+drawstaticobsloop       ;loops over all wall sections
     LDA staticobsY,x
     ;CMP #$0B
     ;BMI pulldrawBlockb
