@@ -478,6 +478,7 @@ nospawn
 updatedata
     JSR updateBullet
     JSR updatefallingobs
+	JSR updateWalls
 	DEC powerUpX
 	LDA powerUpX
 	AND #$7F			;Remove negative flag if it goes from 0 to 255
@@ -505,6 +506,20 @@ rfupdate
     JSR algomain
 updatedone
     RTS
+
+updateWalls
+	LDA staticobsFlag
+	CMP #$01
+	BNE noWallUp
+	DEC staticobsX
+	LDA staticobsX
+	AND #$7F			;Remove negative flag if it goes from 0 to 255
+	CMP #$17
+	BMI noWallUp
+	LDA #$00
+	STA staticobsFlag
+noWallUp
+	RTS
 
 algomain			;Branches to correct algorithm, also updates at diff rates for diff algos
     LDA currLevel
@@ -1006,7 +1021,7 @@ fallingobsb
 	STA internum
 	CPY internum
 	BEQ colorb
-staticobsb 
+staticobsb
 	CPX staticobsX
 	BNE blackb
     TXA
@@ -1014,7 +1029,7 @@ staticobsb
     LDX #$00
 staticobsb1
 	LDA staticobsY,x
-	CMP #$0B                            ;if its A - 11 is negative the block is in the top half so dont color 
+	CMP #$0B                            ;if its A - 11 is negative the block is in the top half so dont color
 	BMI pullblackb
 	CLC
 	SBC #$0A
@@ -1065,10 +1080,10 @@ whiteb
 	LDA #$01
 	STA $96F2,x			;Print character as white
 	RTS
-    
+
 pullcolorb
     PLA
-    TAX    
+    TAX
 colorb
 	TXA
 	STY internum
@@ -1572,7 +1587,7 @@ rngloop
 
 ;=============================================================================
 ;DATA
-    org $1B1D        ;dec  ####
+    org $1B71        ;dec  ####
 
 inputval
 	.BYTE $00
@@ -1657,7 +1672,7 @@ staticobsY
 	.BYTE $11, $12, $13, $14, $15, $16, $17
 	.BYTE $18, $19, $1A, $1B, $1C, $1D, $1E
 staticobsFlag
-	.BYTE $00
+	.BYTE $01
 
 depth
     .WORD $00
