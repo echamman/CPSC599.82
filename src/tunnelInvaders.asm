@@ -430,8 +430,22 @@ spawn
 	CMP #$06		;If number is equal to 6, spawn wall
 	BNE nospawn
 spawnWall
-    ;check level
-    ;
+	LDA staticobsFlag
+	CMP #$01
+	BEQ nospawn
+	LDA currLevel
+	CMP #$03
+	BNE nospawn
+	LDY #$02
+	LDX #$00
+wallYwrite
+	STA staticobsY,x
+	INY
+	INX
+	CPX #$0E
+	BNE wallYwrite
+	LDX #$15
+	STX staticobsX
 	JMP nospawn
 spawnObs
 	LDA fallingobsFlag		;Make sure no falling object is on screen
@@ -1587,7 +1601,7 @@ rngloop
 
 ;=============================================================================
 ;DATA
-    org $1B71        ;dec  ####
+    org $1B77       ;dec  ####
 
 inputval
 	.BYTE $00
