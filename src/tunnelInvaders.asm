@@ -70,9 +70,6 @@ color4
 	LDA #$05	;E
 	STA $1E4B
 	CLC
-	LDA currScoreTThous		;0 //currScoreHundredThousands
-	ADC #$30
-	STA $1E4D
 	LDA currScoreThous		;0 //currScoreTenThousands
 	ADC #$30
 	STA $1E4E
@@ -123,11 +120,11 @@ hitstart			      ;Prints the start screen - Appendix E
 	STA $1E4A
 	LDA #$0C	;L
 	STA $1E4B
-	LDA #$09	;I
+	LDA #$12	;R
 	STA $1E4D
-	LDA #$0E	;N
+	LDA #$15	;U
 	STA $1E4E
-	LDA #$16	;V
+	LDA #$0E	;N
 	STA $1E4F
 
 	LDA #$10    ;P
@@ -862,13 +859,13 @@ bulletHitTrue
 bulletWall
 	LDA bulletX
 	CMP staticobsX
-	BEQ bullHitL
+	BEQ bullHitP
 	LDX staticobsX
 	STX internum
 	DEC internum
-	;LDA bulletX
 	CMP internum
 	BNE noBulHit
+bullHitP
 	LDX #$00
 bullHitL
 	LDA staticobsY,x
@@ -1478,20 +1475,10 @@ addThouToScore
     STA currScoreHuns
     LDA currScoreThous
     CMP #$09
-    BEQ addTThousToScore
+    BEQ updateScoreEnd
     ;ADC #$01===========================================CHANGE
     ;STA currScoreThous
     INC currScoreThous
-    BVC updateScoreEnd
-addTThousToScore
-    LDA #$00
-    STA currScoreThous
-    LDA currScoreTThous
-    CMP #$09
-    BEQ updateScoreEnd
-    ;ADC #$01===========================================CHANGE
-    ;STA currScoreTThous
-    INC currScoreTThous
 updateScoreEnd
     RTS
 
@@ -1540,16 +1527,13 @@ noresetc
 	;Need to write int to output conversion method before
 printScoreLevel
 	LDA #$13		;S
-	STA $1FE4
-	LDA #$03		;C
 	STA $1FE5
-	LDA #$12		;R
+	LDA #$03		;C
 	STA $1FE6
+	LDA #$12		;R
+	STA $1FE7
 
 	CLC
-	LDA currScoreTThous		;0 //currScoreHundredThousands
-	ADC #$30
-	STA $1FE8
 	LDA currScoreThous		;0 //currScoreTenThousands
 	ADC #$30
 	STA $1FE9
@@ -1619,7 +1603,7 @@ rngloop
 
 ;=============================================================================
 ;DATA
-    org $1B49       ;dec  ####
+    org $1B26       ;dec  ####
 
 currTime
 	.BYTE #$00
@@ -1640,8 +1624,6 @@ currScoreTens
 currScoreHuns
 	.BYTE $00
 currScoreThous
-	.BYTE $00
-currScoreTThous
 	.BYTE $00
 
 drawDirection
@@ -1674,7 +1656,7 @@ bulletFlag
     .BYTE $00
 
 bulletAmmoOnes
-    .BYTE $09
+    .BYTE $01
 bulletAmmoTens
     .BYTE $00
 
