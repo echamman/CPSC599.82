@@ -58,23 +58,6 @@ color4
 	CPX #$0
 	BNE color4
 	JSR clearscreen
-
-	LDA #$07    ;G
-	STA $1EB6
-	LDA #$01    ;A
-	STA $1EB7
-	LDA #$0D    ;M
-	STA $1EB8
-	LDA #$05    ;E
-	STA $1EB9
-	LDA #$0F	;O
-	STA $1EBB
-	LDA #$16	;V
-	STA $1EBC
-	LDA #$5		;E
-	STA $1EBD
-	LDA #$12	;R
-	STA $1EBE
 	;Print Score
 	LDA #$13	;S
 	STA $1E47
@@ -146,16 +129,6 @@ hitstart			      ;Prints the start screen - Appendix E
 	STA $1E4E
 	LDA #$16	;V
 	STA $1E4F
-	LDA #$01	;A
-	STA $1E50
-	LDA #$04	;D
-	STA $1E51
-	LDA #$05	;E
-	STA $1E52
-	LDA #$12	;R
-	STA $1E53
-	LDA #$13	;S
-	STA $1E54
 
 	LDA #$10    ;P
 	STA $1EB6
@@ -442,14 +415,17 @@ spawnWall
 	LDA currLevel
 	CMP #$03
 	BNE nospawn
-	LDY #$02
+	LDY #$04
 	LDX #$00
 wallYwrite
+	TYA
 	STA staticobsY,x
 	INY
 	INX
 	CPX #$0E
 	BNE wallYwrite
+	LDA #$01
+	STA staticobsFlag
 	LDX #$15
 	STX staticobsX
 	JMP nospawn
@@ -886,6 +862,12 @@ bulletHitTrue
 bulletWall
 	LDA bulletX
 	CMP staticobsX
+	BEQ bullHitL
+	LDX staticobsX
+	STX internum
+	DEC internum
+	;LDA bulletX
+	CMP internum
 	BNE noBulHit
 	LDX #$00
 bullHitL
@@ -1057,7 +1039,7 @@ staticobsb
     LDX #$00
 staticobsb1
 	LDA staticobsY,x
-	;CMP #$0B                            ;if its A - 11 is negative the block is in the top half so dont color 
+	;CMP #$0B                            ;if its A - 11 is negative the block is in the top half so dont color
 	;BMI pullblackb
 	CLC
 	SBC #$0A
@@ -1193,7 +1175,7 @@ drawfallingobs1				;Check to see if we want to draw Power up
 drawstaticobs1				;Check to see if we want to draw wall
 	CPX staticobsX
 	BNE drawBlock
-    LDA topset,x 
+    LDA topset,x
     STA internum
     CPY internum            ;check if y value is less than the topset,x
     BMI drawBlock
@@ -1637,7 +1619,7 @@ rngloop
 
 ;=============================================================================
 ;DATA
-    org $1B74       ;dec  ####
+    org $1B49       ;dec  ####
 
 currTime
 	.BYTE #$00
@@ -1647,7 +1629,7 @@ currTurn
 ;levelCounter
 ;    .BYTE $00
 currLevel
-    .BYTE $03
+    .BYTE $01
 currSubLevel
     .BYTE $01
 
@@ -1692,7 +1674,7 @@ bulletFlag
     .BYTE $00
 
 bulletAmmoOnes
-    .BYTE $05
+    .BYTE $09
 bulletAmmoTens
     .BYTE $00
 
